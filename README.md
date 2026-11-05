@@ -36,4 +36,11 @@ En GitHub Pages la app funciona en modo demo: los datos se guardan solo en el di
 3. **Lugares:** mapa (OpenStreetMap + CARTO) con filtros por categoría y vista de lista. Al proponer un lugar, se ubica arrastrando el pin.
 4. **Tribus** y **Perfil** (con cierre de sesión).
 
+## Cómo funcionan las salidas
+
+- Quien organiza propone de 1 a 4 fechas posibles y define un mínimo y un máximo de personas.
+- La gente marca "Puedo" en las fechas que le sirven.
+- La primera fecha que llega al mínimo queda **confirmada**; a partir de ahí solo se suma gente a esa fecha, hasta el máximo.
+- Si alguien se baja y la salida queda por debajo del mínimo, vuelve a "Por confirmar".
+
 Las ubicaciones de los lugares precargados son aproximadas, a nivel cuadra.
