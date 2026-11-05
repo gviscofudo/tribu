@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>tribu</title>
-<meta name="description" content="tribu: armá la lista de antojos con tu grupo, organizá salidas y reseñá lugares.">
+<meta name="description" content="tribu: salidas en grupo. Antojos, mesas y reseñas con tu gente.">
 <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F0F0F" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,12 +13,13 @@
 <meta name="application-name" content="tribu">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="format-detection" content="telephone=no">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='27' fill='#2F7D4A'/%3E%3Cg transform='translate(22 20) scale(0.633)'%3E%3Cpath d='M60 46 H26 Q14 46 14 34 V20' fill='none' stroke='#FAFAF7' stroke-width='22' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M60 46 H94 Q106 46 106 34 V20' fill='none' stroke='#FAFAF7' stroke-width='22' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M46 120 V14 A14 14 0 0 1 74 14 V120 Z' fill='#FAFAF7'/%3E%3Cpath d='M56 62 V112 M64 62 V112 M14 22 V36 M106 22 V36' fill='none' stroke='#2F7D4A' stroke-width='2' stroke-linecap='round' opacity='0.4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{
   --bg:#FAFAF7;--surface:#FFFFFF;--fg:#111111;--fg2:#4A4A4A;--fg3:#707070;--line:#EAEAE6;--line2:#D4D4CF;
@@ -35,33 +36,51 @@
   --ink:#F2F2F2;--on-ink:#111111;--accent:#7CC48F;--accent-bg:#13241A;--cardon:#5FAE77;--ok:#B7E39A;--ok-bg:#16220F;color-scheme:dark;}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0;padding:0}
+button,label,.input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
-.app{height:100%;min-height:0;max-width:520px;margin:0 auto;display:flex;flex-direction:column;position:relative}
-@media (min-width:560px){.app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+.app{height:100%;min-height:0;max-width:520px;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+@media (min-width:560px){body{background:var(--line)}.app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
 
-header.top{flex-shrink:0;padding:12px 20px 4px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
-.tribe-pick{align-self:flex-start;display:flex;align-items:center;gap:6px;min-height:44px;font-size:22px;font-weight:700;letter-spacing:-.01em;max-width:100%;text-align:left}
-.tribe-pick span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tribe-pick svg{flex-shrink:0;color:var(--fg3)}
-.brand{font-size:22px;font-weight:700;letter-spacing:-.01em}
-.brandbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+/* marca */
 .logo{display:inline-flex;align-items:baseline;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--fg)}
 .logo svg{width:1.08em;height:1.08em;margin-right:-.3em;color:var(--cardon);flex-shrink:0}
-.logo.xl{font-size:56px}
-.cardon-mark{color:var(--cardon)}
-.icon-btn{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line2);flex-shrink:0}
-main{flex:1;overflow-y:auto;padding:4px 20px 96px;-webkit-overflow-scrolling:touch}
-.section-t{font-size:13px;font-weight:600;color:var(--fg3);margin:24px 0 6px}
-.section-t:first-child{margin-top:8px}
+.logo.xl{font-size:64px}
 
-nav.tabs{flex-shrink:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);background:var(--bg);height:62px}
+header.top{flex-shrink:0;padding:12px 20px 4px;display:flex;flex-direction:column;gap:2px}
+.brandbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.tribe-pick{align-self:flex-start;display:flex;align-items:center;gap:6px;min-height:40px;font-size:20px;font-weight:700;letter-spacing:-.01em;max-width:100%;text-align:left}
+.tribe-pick span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tribe-pick svg{flex-shrink:0;color:var(--fg3)}
+.page-t{font-size:20px;font-weight:700;letter-spacing:-.01em;min-height:40px;display:flex;align-items:center}
+.icon-btn{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line2);flex-shrink:0}
+
+.stage{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+main{flex:1;overflow-y:auto;padding:4px 20px 96px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mapHost{position:absolute;inset:0;z-index:1}
+#map{position:absolute;inset:0;background:var(--line)}
+.map-top{position:absolute;top:8px;left:0;right:0;z-index:600;pointer-events:none}
+.map-top .chips-row{pointer-events:auto;padding:0 16px}
+.float-pill{position:absolute;left:16px;bottom:18px;z-index:600;height:44px;padding:0 16px;border-radius:999px;background:var(--surface);border:1px solid var(--line2);font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.leaflet-container{font-family:var(--font)}
+.pin{width:34px;height:34px;border-radius:999px;background:var(--ink);color:var(--on-ink);border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.pin.on{background:var(--cardon);color:#fff}
+.pin.dim{opacity:.35}
+
+.chips-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0 10px}
+.chips-row::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);font-size:14px;font-weight:600;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+
+nav.tabs{flex-shrink:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);background:var(--bg);height:62px;position:relative;z-index:5}
 nav.tabs button{color:var(--fg3);font-size:12px;font-weight:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
 nav.tabs button[aria-current="page"]{color:var(--fg);font-weight:700}
 
+.section-t{font-size:13px;font-weight:600;color:var(--fg3);margin:22px 0 4px}
+.section-t:first-child{margin-top:6px}
 .list{display:flex;flex-direction:column}
 .item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
 .item:last-child{border-bottom:0}
@@ -69,30 +88,28 @@ nav.tabs button[aria-current="page"]{color:var(--fg);font-weight:700}
 .item-t{font-size:17px;font-weight:600;line-height:1.25}
 .meta{font-size:14px;color:var(--fg3)}
 .meta b{color:var(--fg2);font-weight:600}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--accent-bg);color:var(--accent)}
+.tag.mine{background:var(--line);color:var(--fg2)}
 .vote{width:52px;height:52px;border-radius:14px;border:1px solid var(--line2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;font-weight:700;line-height:1}
-.vote svg{margin-bottom:1px}
 .vote[aria-pressed="true"]{background:var(--accent-bg);border-color:transparent;color:var(--accent)}
-.date{width:48px;flex-shrink:0;text-align:center;line-height:1}
-.date b{display:block;font-size:22px;font-weight:700}
-.date span{font-size:12px;color:var(--fg3);text-transform:uppercase;letter-spacing:.04em}
+.time{width:52px;flex-shrink:0;font-size:17px;font-weight:700;line-height:1.1}
 .mini{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);font-size:14px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;flex-shrink:0}
 .mini.ink{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
 .mini.ok{background:var(--ok-bg);border-color:transparent;color:var(--ok)}
-.mini:disabled{opacity:.5;cursor:not-allowed}
 .dot{width:38px;height:38px;border-radius:999px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;color:var(--fg2)}
-.avs{display:flex}
-.av{width:24px;height:24px;border-radius:999px;border:2px solid var(--bg);margin-right:-6px;object-fit:cover;background:var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--fg2);flex-shrink:0}
+.avs{display:inline-flex;vertical-align:middle;margin-right:8px}
+.av{width:22px;height:22px;border-radius:999px;border:2px solid var(--bg);margin-right:-6px;object-fit:cover;background:var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--fg2);flex-shrink:0}
 .av.md{width:36px;height:36px;border:0;margin:0;font-size:12px}
 .av.lg{width:64px;height:64px;border:0;margin:0;font-size:20px}
 
-.btn{min-height:50px;width:100%;border-radius:12px;border:1px solid var(--line2);font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn{min-height:50px;width:100%;border-radius:12px;border:1px solid var(--line2);font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--surface)}
 .btn.ink{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
 .btn.ok{background:var(--ok-bg);border-color:transparent;color:var(--ok)}
-.btn.quiet{border-color:transparent;color:var(--fg3);min-height:44px;font-size:15px}
+.btn.quiet{border-color:transparent;background:transparent;color:var(--fg3);min-height:44px;font-size:15px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.fab{position:absolute;right:20px;bottom:78px;height:52px;padding:0 20px;border-radius:999px;background:var(--ink);color:var(--on-ink);font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:5}
+.fab{position:absolute;right:16px;bottom:78px;height:50px;padding:0 18px;border-radius:999px;background:var(--ink);color:var(--on-ink);font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:700}
 
-.empty{padding:48px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.empty{padding:44px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
 .empty p{margin:0;color:var(--fg2);max-width:30ch}
 .empty .btn{max-width:240px}
 .banner{margin:0 20px 8px;padding:10px 12px;border-radius:10px;font-size:13px;background:var(--accent-bg);color:var(--fg2)}
@@ -106,8 +123,17 @@ nav.tabs button[aria-current="page"]{color:var(--fg);font-weight:700}
 .num{font-size:15px;font-weight:700;flex-shrink:0}
 .pos{width:20px;font-weight:700;color:var(--fg3);flex-shrink:0}
 
-.scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30;display:flex;align-items:flex-end;justify-content:center}
-.sheet{width:100%;max-width:520px;max-height:92%;max-height:92dvh;overscroll-behavior:contain;overflow-y:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:8px 20px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+/* login */
+#login{position:fixed;inset:0;z-index:3000;background:var(--bg);overflow-y:auto;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.login-in{max-width:400px;margin:0 auto;min-height:100%;padding:56px 24px 32px;display:flex;flex-direction:column;gap:14px}
+.login-in .logo{align-self:center;margin-bottom:6px}
+.login-claim{text-align:center;font-size:18px;color:var(--fg2);margin:0 0 18px}
+.or{display:flex;align-items:center;gap:12px;color:var(--fg3);font-size:13px;margin:6px 0}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line2)}
+
+/* sheets */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:520px;max-height:92%;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--bg);border-radius:20px 20px 0 0;padding:8px 20px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
 .grab{width:36px;height:4px;border-radius:4px;background:var(--line2);margin:0 auto 4px}
 .sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .sheet-head h1{margin:0;font-size:24px;font-weight:700;line-height:1.15}
@@ -117,15 +143,16 @@ nav.tabs button[aria-current="page"]{color:var(--fg);font-weight:700}
 .input{font-size:16px;min-height:48px;border-radius:10px;border:1px solid var(--line2);background:var(--surface);padding:10px 12px;width:100%}
 textarea.input{min-height:76px;resize:vertical}
 .input:focus{outline:none;border-color:var(--fg)}
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;min-width:0}
 .choice{display:flex;gap:8px}
-.choice label{flex:1;min-height:48px;border:1px solid var(--line2);border-radius:10px;display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;cursor:pointer;text-align:center;padding:6px}
+.choice label{flex:1;min-height:48px;border:1px solid var(--line2);border-radius:10px;display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;cursor:pointer;text-align:center;padding:6px;position:relative}
 .choice input{position:absolute;opacity:0;pointer-events:none}
 .choice label:has(input:checked){background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
 .choice label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
 .sl{display:flex;flex-direction:column;gap:2px}
 .sl .top{display:flex;justify-content:space-between;align-items:baseline}
 .sl output{font-weight:700;font-size:15px}
-.sl input[type=range]{width:100%;accent-color:var(--fg);height:32px;margin:0}
+.sl input[type=range]{width:100%;accent-color:var(--cardon);height:32px;margin:0}
 .sl .ends{display:flex;justify-content:space-between;font-size:12px;color:var(--fg3)}
 .score-big{font-size:44px;font-weight:700;line-height:1;letter-spacing:-.02em}
 .photos{display:flex;gap:8px;flex-wrap:wrap}
@@ -133,35 +160,26 @@ textarea.input{min-height:76px;resize:vertical}
 .seats{display:flex;gap:6px;flex-wrap:wrap}
 .seat{width:34px;height:34px;border-radius:999px;object-fit:cover;background:var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--fg2)}
 .seat.free{background:transparent;border:1px dashed var(--line2)}
-.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--on-ink);padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:50;max-width:min(90vw,440px)}
+.minimap{height:190px;border-radius:12px;overflow:hidden;border:1px solid var(--line2)}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--on-ink);padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:4000;max-width:min(90vw,440px)}
 .code{font-family:ui-monospace,Menlo,monospace;font-size:14px;background:var(--surface);border:1px solid var(--line2);padding:10px 12px;border-radius:10px;user-select:all;word-break:break-all}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .hint{font-size:13px;color:var(--fg3);margin:0}
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-body{overscroll-behavior-y:none}
-button,label,.input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-main{overscroll-behavior:contain}
-input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;min-width:0}
 @media (max-width:380px){
-  header.top{padding:12px 16px 6px}
-  .tribe-pick,.brand{font-size:19px}
+  header.top{padding:10px 16px 2px}
+  .tribe-pick,.page-t{font-size:18px}
   main{padding:2px 16px 92px}
   .banner{margin:0 16px 8px}
   .item{gap:10px;padding:12px 0}
   .item-t{font-size:16px}
   .vote{width:48px;height:48px}
-  .date{width:40px}
-  .date b{font-size:19px}
+  .time{width:46px;font-size:16px}
   .mini{padding:0 11px}
   .stats{gap:18px}
-  .stats b{font-size:21px}
   .sheet{padding:8px 16px calc(20px + env(safe-area-inset-bottom,0px))}
-  .score-big{font-size:38px}
-  .fab{right:16px;height:48px;padding:0 16px}
-  nav.tabs button{font-size:11px}
+  .fab{right:12px;height:46px;padding:0 14px}
+  .logo.xl{font-size:56px}
 }
-@media (max-height:600px){ nav.tabs{height:56px} .fab{bottom:68px} }
-@media (min-width:560px){ body{background:var(--line)} .app{background:var(--bg)} }
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:.7}to{transform:none;opacity:1}}}
 </style>
 </head>
@@ -169,40 +187,51 @@ input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;min-wi
 <div class="app">
   <header class="top" id="top"></header>
   <div id="banner"></div>
-  <main id="view"></main>
+  <div class="stage">
+    <main id="view"></main>
+    <div id="mapHost" hidden>
+      <div id="map" role="region" aria-label="Mapa de lugares"></div>
+      <div class="map-top"><div class="chips-row" id="mapChips"></div></div>
+      <button type="button" class="float-pill" data-act="lugaresMode" data-v="lista">Ver lista</button>
+    </div>
+  </div>
   <div id="fabSlot"></div>
   <nav class="tabs" aria-label="Navegación principal">
-    <button type="button" data-tab="antojos"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>Antojos</button>
-    <button type="button" data-tab="salidas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Salidas</button>
+    <button type="button" data-tab="explorar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Explorar</button>
+    <button type="button" data-tab="lugares"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Lugares</button>
     <button type="button" data-tab="tribus"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Tribus</button>
     <button type="button" data-tab="perfil"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Perfil</button>
   </nav>
 </div>
+<div id="login" hidden></div>
 <div id="sheetRoot"></div>
 <div id="toastRoot" aria-live="polite"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 (function(){
 'use strict';
 var COLS = ['tribes','antojos','salidas','memberships','votes','asist','reviews'];
-var S = { tab:'antojos', uid:null, meName:'', canWrite:false, ready:false, noDb:false, slow:false, error:null,
-  loaded:{}, profiles:{}, perfilTab:'visitas', rankScope:'tribu', active:null };
+var S = { tab:'explorar', uid:null, meName:'', canWrite:false, ready:false, noDb:false, slow:false, error:null,
+  loaded:{}, profiles:{}, perfilTab:'visitas', rankScope:'tribu', active:null, exFilter:'todas', cat:'', lugMode:'mapa' };
 COLS.forEach(function(c){ S[c] = {}; });
 var db = null, user = null, assets = null;
+var HAS_MAP = !!window.L && !window.claude;
+var BA = [-34.592, -58.437];
 
 /* ---------- helpers ---------- */
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function slug(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80) || 'local'; }
-function todayStr(){ return new Date().toLocaleDateString('sv-SE'); }
+function dayStr(offset){ var d = new Date(); d.setDate(d.getDate() + (offset||0)); return d.toLocaleDateString('sv-SE'); }
+function todayStr(){ return dayStr(0); }
 function monthKey(){ return todayStr().slice(0,7); }
 function dec(n){ return (Math.round(n*10)/10).toFixed(1).replace('.',','); }
 function fmtN(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
 function initials(s){ var p = String(s||'').trim().split(/\s+/).filter(Boolean); return ((p[0]||'?')[0] + (p[1] ? p[1][0] : (p[0]||'')[1]||'')).toUpperCase(); }
 function dObj(iso){ return new Date(iso + 'T12:00:00'); }
-function dayNum(iso){ return dObj(iso).getDate(); }
-function monShort(iso){ return dObj(iso).toLocaleDateString('es-AR',{month:'short'}).replace('.',''); }
-function weekday(iso){ var s = dObj(iso).toLocaleDateString('es-AR',{weekday:'long'}); return s.charAt(0).toUpperCase()+s.slice(1); }
-function fmtDate(iso){ var s = dObj(iso).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}); return s.charAt(0).toUpperCase()+s.slice(1); }
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function fmtDate(iso){ return cap(dObj(iso).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})); }
+function dayLabel(iso){ if(iso === dayStr(0)) return 'Hoy'; if(iso === dayStr(1)) return 'Mañana'; return fmtDate(iso); }
 function shortDate(iso){ try{ return new Date(iso).toLocaleDateString('es-AR',{day:'numeric',month:'short'}).replace('.',''); }catch(e){ return ''; } }
 function store(k,v){ try{ if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){} }
 function load(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
@@ -214,6 +243,7 @@ var ICON = {
   check:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
   chev:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
   x:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  map:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
   cam:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg>'
 };
 
@@ -224,9 +254,9 @@ function nm(id){
   wanted[id] = true;
   var p = S.profiles[id];
   if(p && p.name) return p.name;
-  return id === S.uid ? (S.meName || 'Vos') : (S.local ? 'Alguien de la tribu' : 'Alguien');
+  return id === S.uid ? (S.meName || 'Vos') : 'Alguien';
 }
-function firstName(id){ return nm(id).split(' ')[0]; }
+function firstName(id){ return id === S.uid ? 'vos' : nm(id).split(' ')[0]; }
 function av(id, cls){
   var p = S.profiles[id]; var n = nm(id);
   if(p && p.avatarUrl) return '<img class="av '+(cls||'')+'" src="'+esc(p.avatarUrl)+'" alt="'+esc(n)+'">';
@@ -275,16 +305,23 @@ function pendingSalidas(){
     return !mine.some(function(r){ return r.localKey === lk && String(r.createdAt).slice(0,10) >= s.fecha; });
   });
 }
+function canSee(tid){ var t = tribe(tid); return !!t && (t.tipo !== 'privada' || (S.uid && isMember(S.uid, tid))); }
+function antojosOf(tid){ return Object.keys(S.antojos).filter(function(a){ return S.antojos[a].tribe === tid; }); }
+function catsOf(tid){ var c = {}; antojosOf(tid).forEach(function(a){ var k = S.antojos[a].categoria; if(k) c[k] = 1; }); return Object.keys(c).sort(); }
+function filteredAntojos(tid){
+  return antojosOf(tid).filter(function(a){ return !S.cat || S.antojos[a].categoria === S.cat; }).map(function(id){
+    var v = votersOf(id); return {id:id, a:S.antojos[id], voters:v, n:v.length};
+  }).sort(function(x,y){ return y.n - x.n || String(y.a.createdAt).localeCompare(String(x.a.createdAt)); });
+}
 
 /* ---------- writes ---------- */
 var queues = {};
 function serial(key, fn){ var p = (queues[key] || Promise.resolve()).then(fn, fn); queues[key] = p.catch(function(){}); return p; }
 function errMsg(e){
   var c = e && e.code;
-  if(c === 'invalid_argument') return 'No tenés permiso para hacer cambios. Pedí acceso como colaborador.';
+  if(c === 'invalid_argument') return 'No tenés permiso para hacer cambios.';
   if(c === 'quota_exceeded') return 'Se llenó el espacio de la app.';
   if(c === 'resource_exhausted') return 'Demasiados cambios seguidos. Esperá unos segundos.';
-  if(c === 'revoked') return 'Se cerró tu acceso a esta app.';
   return 'No se pudo guardar. Probá de nuevo.';
 }
 function act(p, okMsg){ return Promise.resolve(p).then(function(r){ if(okMsg) toast(okMsg); return r; }, function(e){ toast(errMsg(e)); throw e; }); }
@@ -302,88 +339,149 @@ function setMine(col, field, key, val){
     return db.collection(col).doc(S.uid).set(cur);
   });
 }
+function joinSalida(sid){
+  var s = S.salidas[sid];
+  return db.collection('salidas').doc(sid).acquire({holder:S.uid, ttlMs:4000}).then(function(l){
+    if(!l.acquired){ toast('Alguien se está sumando ahora. Probá en unos segundos.'); return false; }
+    return db.collection('asist').get().then(function(snap){
+      var n = 0; snap.docs.forEach(function(d){ var x = d.data(); if(x && x.salidas && x.salidas[sid]) n++; });
+      if(n >= s.cupo){ toast('Se llenó justo antes que vos.'); return false; }
+      return setMine('asist','salidas',sid,new Date().toISOString()).then(function(){ return true; });
+    });
+  });
+}
+
+/* ---------- map ---------- */
+var map = null, markers = null, mapTribe = null, mapCat = null;
+function tileUrl(){ var dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches; return 'https://{s}.basemaps.cartocdn.com/'+(dark?'dark_all':'light_all')+'/{z}/{x}/{y}{r}.png'; }
+function ensureMap(){
+  if(map || !HAS_MAP) return;
+  map = L.map('map', {zoomControl:false, attributionControl:true}).setView(BA, 14);
+  L.tileLayer(tileUrl(), {maxZoom:19, subdomains:'abcd', attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+  markers = L.layerGroup().addTo(map);
+}
+function syncMap(tid){
+  if(!HAS_MAP) return;
+  ensureMap();
+  map.invalidateSize();
+  markers.clearLayers();
+  var pts = [];
+  filteredAntojos(tid).forEach(function(o){
+    var a = o.a; if(typeof a.lat !== 'number' || typeof a.lng !== 'number') return;
+    var on = S.uid && o.voters.indexOf(S.uid) >= 0;
+    var icon = L.divIcon({className:'', html:'<div class="pin'+(on?' on':'')+'">'+o.n+'</div>', iconSize:[34,34], iconAnchor:[17,17]});
+    var m = L.marker([a.lat, a.lng], {icon:icon, title:a.nombre+', '+o.n+' votos', keyboard:true});
+    m.on('click', function(){ sheetAntojo(o.id); });
+    m.addTo(markers); pts.push([a.lat, a.lng]);
+  });
+  if(mapTribe !== tid || mapCat !== S.cat){
+    mapTribe = tid; mapCat = S.cat;
+    if(pts.length > 1) map.fitBounds(pts, {padding:[60,60], maxZoom:16});
+    else if(pts.length === 1) map.setView(pts[0], 15);
+  }
+}
 
 /* ---------- render ---------- */
 var pendingR = false;
 function schedule(){ if(pendingR) return; pendingR = true; requestAnimationFrame(function(){ pendingR = false; render(); }); }
 
+function chipsHTML(tid){
+  var cats = catsOf(tid);
+  if(!cats.length) return '';
+  return '<button type="button" class="chip" data-act="cat" data-v="" aria-pressed="'+(!S.cat)+'">Todas</button>' +
+    cats.map(function(c){ return '<button type="button" class="chip" data-act="cat" data-v="'+esc(c)+'" aria-pressed="'+(S.cat===c)+'">'+esc(c)+'</button>'; }).join('');
+}
+
 function render(){
   wanted = {};
+  renderLogin();
   document.querySelectorAll('nav.tabs button').forEach(function(b){ if(b.dataset.tab === S.tab) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   var ban = '';
-  if(S.noDb) ban = 'Abrí la app desde claude.ai para ver los datos compartidos.';
+  if(S.noDb) ban = 'No se pudieron cargar los datos.';
   else if(S.error) ban = 'Se cortó la conexión. Recargá la página.';
-  else if(!S.ready && S.slow) ban = 'Los datos están tardando en llegar.';
-  else if(S.local && !S.hideDemo) ban = 'Modo demo: tus datos se guardan solo en este dispositivo. <button type="button" data-act="hideDemo" style="text-decoration:underline;font-weight:600">Entendido</button>';
+  else if(S.local && !S.hideDemo) ban = 'Versión demo: tus datos se guardan solo en este dispositivo. <button type="button" data-act="hideDemo" style="text-decoration:underline;font-weight:600">Entendido</button>';
   else if(S.ready && (!S.uid || !S.canWrite)) ban = 'Modo lectura: podés mirar, pero no participar.';
   document.getElementById('banner').innerHTML = ban ? '<p class="banner">'+ban+'</p>' : '';
 
   var tid = activeTribe(), t = tid && tribe(tid);
-  var top = document.getElementById('top');
+  if(tid && S.active !== tid && S.ready){ S.active = tid; store('tf-active', tid); }
   var right = S.tab === 'tribus' ? '<button type="button" class="icon-btn" data-act="newTribe" aria-label="Crear tribu">'+ICON.plus+'</button>' : '';
-  var sub = ((S.tab === 'antojos' || S.tab === 'salidas') && t)
-    ? '<button type="button" class="tribe-pick" data-act="pickTribe" aria-label="Tribu activa: '+esc(t.nombre)+'. Cambiar"><span>'+esc(t.nombre)+'</span>'+ICON.chev+'</button>'
-    : '<span class="brand">'+({antojos:'Antojos',salidas:'Salidas',tribus:'Tribus',perfil:'Perfil'}[S.tab])+'</span>';
-  top.innerHTML = '<div class="brandbar">'+logo()+right+'</div>'+sub;
+  var sub;
+  if(S.tab === 'lugares' && t) sub = '<button type="button" class="tribe-pick" data-act="pickTribe" aria-label="Tribu activa: '+esc(t.nombre)+'. Cambiar"><span>'+esc(t.nombre)+'</span>'+ICON.chev+'</button>';
+  else sub = '<span class="page-t">'+({explorar:'Qué se viene',lugares:'Lugares',tribus:'Tribus',perfil:'Perfil'}[S.tab])+'</span>';
+  document.getElementById('top').innerHTML = '<div class="brandbar">'+logo()+right+'</div>'+sub;
 
-  var html;
-  if(!S.ready && !S.noDb) html = '<div class="empty">'+logo('xl')+'<p class="meta">Cargando tu tribu…</p></div>';
-  else if(S.tab === 'antojos') html = viewAntojos(tid);
-  else if(S.tab === 'salidas') html = viewSalidas(tid);
-  else if(S.tab === 'tribus') html = viewTribus(tid);
-  else html = viewPerfil(tid);
-  document.getElementById('view').innerHTML = html;
-  document.getElementById('fabSlot').innerHTML = (S.tab === 'antojos' && tid && S.ready) ? '<button type="button" class="fab" data-act="newAntojo">'+ICON.plus+'Proponer</button>' : '';
+  var showMap = S.tab === 'lugares' && S.lugMode === 'mapa' && HAS_MAP && tid && S.ready;
+  document.getElementById('mapHost').hidden = !showMap;
+  document.getElementById('view').hidden = !!showMap;
+  if(showMap){
+    document.getElementById('mapChips').innerHTML = chipsHTML(tid);
+    syncMap(tid);
+  } else {
+    var html;
+    if(!S.ready) html = '<div class="empty">'+logo('xl')+'<p class="meta">Cargando…</p></div>';
+    else if(S.tab === 'explorar') html = viewExplorar();
+    else if(S.tab === 'lugares') html = viewLugaresLista(tid);
+    else if(S.tab === 'tribus') html = viewTribus(tid);
+    else html = viewPerfil(tid);
+    document.getElementById('view').innerHTML = html;
+  }
+  document.getElementById('fabSlot').innerHTML = (S.tab === 'lugares' && tid && S.ready) ? '<button type="button" class="fab" data-act="newAntojo">'+ICON.plus+'Proponer</button>' : '';
   flushProfiles();
 }
 
 function needTribe(){
-  return '<div class="empty">'+logo('xl')+'<p>Sumate a una tribu para empezar a juntar antojos y armar salidas.</p><button type="button" class="btn ink" data-act="tab" data-v="tribus">Ver tribus</button></div>';
+  return '<div class="empty">'+logo('xl')+'<p>Sumate a una tribu para empezar a juntar lugares y armar salidas.</p><button type="button" class="btn ink" data-act="tab" data-v="tribus">Ver tribus</button></div>';
 }
 
-function viewAntojos(tid){
+/* Explorar: salidas de todas las tribus */
+function viewExplorar(){
+  var t = todayStr(), mine = myTribes();
+  var ids = Object.keys(S.salidas).filter(function(i){ var s = S.salidas[i]; return s.estado !== 'cancelada' && s.fecha >= t && canSee(s.tribe); });
+  if(S.exFilter === 'mias') ids = ids.filter(function(i){ return mine.indexOf(S.salidas[i].tribe) >= 0; });
+  if(S.exFilter === 'voy') ids = ids.filter(function(i){ return S.uid && attendees(i).indexOf(S.uid) >= 0; });
+  ids.sort(function(a,b){ var x=S.salidas[a], y=S.salidas[b]; return (x.fecha+x.hora).localeCompare(y.fecha+y.hora); });
+  var f = function(v,l){ return '<button type="button" class="chip" data-act="exFilter" data-v="'+v+'" aria-pressed="'+(S.exFilter===v)+'">'+l+'</button>'; };
+  var html = '<div class="chips-row">'+f('todas','Todas las tribus')+f('mias','Mis tribus')+f('voy','Voy')+'</div>';
+  if(!ids.length){
+    return html + '<div class="empty"><p>'+(S.exFilter==='voy' ? 'Todavía no te sumaste a ninguna salida.' : 'No hay salidas programadas. Elegí un lugar y armá la primera.')+'</p><button type="button" class="btn ink" data-act="tab" data-v="lugares">Ver lugares</button></div>';
+  }
+  var lastDay = '';
+  html += ids.map(function(id){
+    var s = S.salidas[id], people = attendees(id), n = people.length, tr = tribe(s.tribe);
+    var isIn = S.uid && people.indexOf(S.uid) >= 0, member = S.uid && isMember(S.uid, s.tribe);
+    var head = '';
+    if(s.fecha !== lastDay){ lastDay = s.fecha; head = '<p class="section-t">'+esc(dayLabel(s.fecha))+'</p>'; }
+    var btn;
+    if(isIn) btn = '<button type="button" class="mini ok" data-act="openSalida" data-id="'+esc(id)+'">'+ICON.check+'Vas</button>';
+    else if(n >= s.cupo) btn = '<span class="meta">Llena</span>';
+    else btn = '<button type="button" class="mini ink" data-act="join" data-id="'+esc(id)+'">Sumarme</button>';
+    return head + '<div class="item"><span class="time">'+esc(s.hora)+'</span>'+
+      '<button type="button" class="item-main" data-act="openSalida" data-id="'+esc(id)+'"><span class="item-t">'+esc(s.local)+'</span>'+
+      '<span class="meta"><span class="tag'+(member?' mine':'')+'">'+esc(tr.nombre)+'</span>'+(s.barrio?' · '+esc(s.barrio):'')+'</span>'+
+      '<span class="meta"><span class="avs">'+people.slice(0,4).map(function(u){ return av(u); }).join('')+'</span>'+n+' de '+s.cupo+'</span></button>'+btn+'</div>';
+  }).join('');
+  return html;
+}
+
+/* Lugares en lista */
+function viewLugaresLista(tid){
   if(!tid) return needTribe();
-  var members = membersOf(tid);
-  var list = Object.keys(S.antojos).filter(function(a){ return S.antojos[a].tribe === tid; }).map(function(id){
-    var v = votersOf(id); return {id:id, a:S.antojos[id], voters:v, n:v.length};
-  }).sort(function(x,y){ return y.n - x.n || String(y.a.createdAt).localeCompare(String(x.a.createdAt)); });
-  if(!list.length) return '<div class="empty"><p>Tu tribu no tiene antojos todavía. Proponé el primer lugar.</p></div>';
-  return '<div class="list">' + list.map(function(o){
+  var members = membersOf(tid), list = filteredAntojos(tid);
+  var html = '<div class="chips-row">'+chipsHTML(tid)+'</div>';
+  if(HAS_MAP) html = '<div style="display:flex;justify-content:flex-end;margin:-2px 0 4px"><button type="button" class="mini" data-act="lugaresMode" data-v="mapa">'+ICON.map+'Ver mapa</button></div>' + html;
+  if(!antojosOf(tid).length) return html + '<div class="empty"><p>Tu tribu no tiene lugares todavía. Proponé el primero.</p></div>';
+  if(!list.length) return html + '<div class="empty"><p>No hay lugares en esta categoría.</p></div>';
+  return html + '<div class="list">' + list.map(function(o){
     var a = o.a, revs = reviewsOfLocal(a.localKey);
     var fueron = {}; revs.forEach(function(r){ if(members.indexOf(r.user) >= 0) fueron[r.user] = 1; });
-    var nf = Object.keys(fueron).length;
-    var voted = S.uid && o.voters.indexOf(S.uid) >= 0;
+    var nf = Object.keys(fueron).length, voted = S.uid && o.voters.indexOf(S.uid) >= 0;
     var line2 = revs.length
       ? '<b>'+dec(revs.reduce(function(s,r){ return s + scoreOf(r); },0)/revs.length)+'</b> · '+ruidoTag(revs.reduce(function(s,r){ return s+Number(r.ruido); },0)/revs.length)+(nf ? ' · '+nf+(nf===1?' fue':' fueron') : '')
       : 'Nadie fue todavía';
     return '<div class="item"><button type="button" class="item-main" data-act="openAntojo" data-id="'+esc(o.id)+'"><span class="item-t">'+esc(a.nombre)+'</span><span class="meta">'+esc([a.barrio, a.categoria].filter(Boolean).join(' · '))+'</span><span class="meta">'+line2+'</span></button>'+
       '<button type="button" class="vote" data-act="vote" data-id="'+esc(o.id)+'" aria-pressed="'+(voted?'true':'false')+'" aria-label="'+(voted?'Quitar voto a ':'Votar ')+esc(a.nombre)+', '+o.n+' votos">'+ICON.up+o.n+'</button></div>';
   }).join('') + '</div>';
-}
-
-function salidaRow(id){
-  var s = S.salidas[id], people = attendees(id), n = people.length;
-  var isIn = S.uid && people.indexOf(S.uid) >= 0;
-  var past = s.fecha < todayStr() || s.estado === 'cancelada';
-  var btn = '';
-  if(!past){
-    if(isIn) btn = '<button type="button" class="mini ok" data-act="openSalida" data-id="'+esc(id)+'">'+ICON.check+'Vas</button>';
-    else if(n >= s.cupo) btn = '<span class="meta">Llena</span>';
-    else btn = '<button type="button" class="mini ink" data-act="join" data-id="'+esc(id)+'">Sumarme</button>';
-  } else btn = '<span class="meta">'+(s.estado==='cancelada'?'Cancelada':'Realizada')+'</span>';
-  return '<div class="item"><div class="date" aria-hidden="true"><b>'+dayNum(s.fecha)+'</b><span>'+esc(monShort(s.fecha))+'</span></div>'+
-    '<button type="button" class="item-main" data-act="openSalida" data-id="'+esc(id)+'"><span class="item-t">'+esc(s.local)+'</span><span class="meta">'+esc(weekday(s.fecha))+' '+esc(s.hora)+' · '+n+'/'+s.cupo+' lugares</span></button>'+btn+'</div>';
-}
-function viewSalidas(tid){
-  if(!tid) return needTribe();
-  var t = todayStr();
-  var ids = Object.keys(S.salidas).filter(function(i){ return S.salidas[i].tribe === tid; });
-  var up = ids.filter(function(i){ var s=S.salidas[i]; return s.estado !== 'cancelada' && s.fecha >= t; }).sort(function(a,b){ var x=S.salidas[a], y=S.salidas[b]; return (x.fecha+x.hora).localeCompare(y.fecha+y.hora); });
-  var past = ids.filter(function(i){ return up.indexOf(i) < 0; }).sort(function(a,b){ return S.salidas[b].fecha.localeCompare(S.salidas[a].fecha); }).slice(0,5);
-  var html = up.length ? '<div class="list">'+up.map(salidaRow).join('')+'</div>'
-    : '<div class="empty"><p>No hay salidas próximas. Elegí un antojo y armá una mesa.</p><button type="button" class="btn ink" data-act="tab" data-v="antojos">Ver antojos</button></div>';
-  if(past.length) html += '<p class="section-t">Anteriores</p><div class="list">'+past.map(salidaRow).join('')+'</div>';
-  return html;
 }
 
 function tribeRow(id, right){
@@ -412,10 +510,10 @@ function viewTribus(tid){
 }
 
 function viewPerfil(tid){
-  if(!S.uid) return '<div class="empty"><p>Iniciá sesión en claude.ai para tener tu perfil.</p></div>';
+  if(!S.uid) return '<div class="empty"><p>Iniciá sesión para tener tu perfil.</p></div>';
   var m = monthKey(), total = pointsOf(S.uid), mine = myReviews();
   var places = {}; mine.forEach(function(r){ places[r.localKey]=1; });
-  var html = '<div class="item" style="border:0;padding-top:4px">'+av(S.uid,'lg')+'<div class="grow" style="flex:1"><div class="item-t" style="font-size:20px">'+esc(nm(S.uid))+'</div><div class="meta">'+levelOf(total)+'</div></div></div>';
+  var html = '<div class="item" style="border:0;padding-top:4px">'+av(S.uid,'lg')+'<div style="flex:1"><div class="item-t" style="font-size:20px">'+esc(nm(S.uid))+'</div><div class="meta">'+levelOf(total)+'</div></div></div>';
   html += '<div class="stats"><div><b>'+fmtN(pointsOf(S.uid,m))+'</b><span>pts del mes</span></div><div><b>'+Object.keys(places).length+'</b><span>lugares</span></div><div><b>'+mine.length+'</b><span>reseñas</span></div></div>';
   var pend = pendingSalidas();
   if(pend.length){ var s = S.salidas[pend[0]];
@@ -433,23 +531,56 @@ function viewPerfil(tid){
     var rows = pool.map(function(u){ return {u:u, p:pointsOf(u,m)}; }).filter(function(r){ return r.p > 0 || r.u === S.uid; }).sort(function(a,b){ return b.p - a.p; });
     var meIdx = -1; rows.forEach(function(r,i){ if(r.u===S.uid) meIdx=i; });
     var li = function(r,i){ return '<div class="item"'+(r.u===S.uid?' style="font-weight:700"':'')+'><span class="pos">'+(i+1)+'</span>'+av(r.u,'md')+'<span style="flex:1;min-width:0">'+esc(nm(r.u))+(r.u===S.uid?' (vos)':'')+'</span><span class="num">'+fmtN(r.p)+'</span></div>'; };
-    html += '<div class="choice" style="margin-top:14px"><label><input type="radio" name="sc" data-act="scope" value="tribu" '+(scope==='tribu'?'checked':'')+' '+(tid?'':'disabled')+'>Mi tribu</label><label><input type="radio" name="sc" data-act="scope" value="global" '+(scope==='global'?'checked':'')+'>Global</label></div>';
+    html += '<div class="choice" style="margin-top:14px"><label><input type="radio" name="sc" value="tribu" '+(scope==='tribu'?'checked':'')+' '+(tid?'':'disabled')+'>Mi tribu</label><label><input type="radio" name="sc" value="global" '+(scope==='global'?'checked':'')+'>Global</label></div>';
     html += '<div class="list">'+rows.slice(0,10).map(li).join('')+(meIdx>=10?li(rows[meIdx],meIdx):'')+'</div>';
     html += '<p class="hint" style="margin-top:12px">Puntos de este mes. Cada reseña suma 50, una por lugar por mes.</p>';
   }
+  html += '<button type="button" class="btn quiet" style="margin-top:20px" data-act="logout">Cerrar sesión</button>';
   return html;
 }
 
+/* ---------- login simulado ---------- */
+function loggedIn(){ return !!load('tf-login'); }
+function renderLogin(){
+  var el = document.getElementById('login');
+  if(loggedIn()){ if(!el.hidden){ el.hidden = true; el.innerHTML = ''; } return; }
+  if(!el.hidden) return;
+  el.hidden = false;
+  var pre = S.local ? (load('tf-name') || '') : (S.meName || '');
+  el.innerHTML = '<div class="login-in" role="dialog" aria-modal="true" aria-label="Ingresar a tribu">'+logo('xl')+
+    '<p class="login-claim">Salidas en grupo. Lugares, mesas y reseñas con tu gente.</p>'+
+    '<button type="button" class="btn" data-act="login" data-v="google">Continuar con Google</button>'+
+    '<button type="button" class="btn" data-act="login" data-v="apple">Continuar con Apple</button>'+
+    '<div class="or">o con tu email</div>'+
+    '<div class="field"><label for="lgName">¿Cómo te llamás?</label><input id="lgName" class="input" autocomplete="given-name" maxlength="40" value="'+esc(pre)+'"'+(S.local?'':' readonly')+'></div>'+
+    '<div class="field"><label for="lgMail">Email</label><input id="lgMail" class="input" type="email" autocomplete="email" placeholder="vos@mail.com"></div>'+
+    '<button type="button" class="btn ink" data-act="login" data-v="email">Entrar</button>'+
+    '<p class="hint" style="text-align:center;margin-top:8px">Es una simulación: no se crea ninguna cuenta ni se envía nada.</p></div>';
+}
+function doLogin(){
+  var name = ((document.getElementById('lgName')||{}).value || '').trim();
+  if(S.local){
+    if(!name){ toast('Escribí tu nombre para entrar.'); document.getElementById('lgName').focus(); return; }
+    store('tf-name', name); S.meName = name; S.profiles[S.uid] = {name:name};
+  }
+  store('tf-login', '1'); S.tab = 'explorar'; render();
+  toast('¡Hola, '+(S.meName || name).split(' ')[0]+'!');
+}
+
 /* ---------- sheets ---------- */
-var lastFocus = null;
+var lastFocus = null, miniMap = null;
 function openSheet(title, body, onMount){
   lastFocus = document.activeElement;
   var root = document.getElementById('sheetRoot');
   root.innerHTML = '<div class="scrim" data-scrim="1"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetT"><div class="grab" aria-hidden="true"></div><div class="sheet-head"><h1 id="sheetT">'+title+'</h1><button type="button" class="x" data-act="close" aria-label="Cerrar">'+ICON.x+'</button></div>'+body+'</div></div>';
-  var f = root.querySelector('input:not([type=radio]),select,textarea'); if(f) f.focus(); else { var c = root.querySelector('.x'); if(c) c.focus(); }
+  var f = root.querySelector('input:not([type=radio]):not([type=range]),select,textarea'); if(f) f.focus(); else { var c = root.querySelector('.x'); if(c) c.focus(); }
   if(onMount) onMount(root.querySelector('.sheet'));
 }
-function closeSheet(){ document.getElementById('sheetRoot').innerHTML = ''; if(lastFocus && lastFocus.focus && document.body.contains(lastFocus)) try{ lastFocus.focus(); }catch(e){} }
+function closeSheet(){
+  if(miniMap){ try{ miniMap.remove(); }catch(e){} miniMap = null; }
+  document.getElementById('sheetRoot').innerHTML = '';
+  if(lastFocus && lastFocus.focus && document.body.contains(lastFocus)) try{ lastFocus.focus(); }catch(e){}
+}
 function refreshSheet(){ var s = document.querySelector('.sheet'); if(s && s._refresh) s._refresh(); }
 
 function sheetPickTribe(){
@@ -461,17 +592,21 @@ function sheetPickTribe(){
 function sheetAntojo(id){
   var a = S.antojos[id]; var members = membersOf(a.tribe); var revs = reviewsOfLocal(a.localKey);
   var fueron = []; revs.forEach(function(r){ if(members.indexOf(r.user)>=0 && fueron.indexOf(r.user)<0) fueron.push(r.user); });
-  var score = revs.length ? '<div class="row" style="display:flex;align-items:flex-end;gap:16px"><span class="score-big">'+dec(revs.reduce(function(s,r){ return s+scoreOf(r); },0)/revs.length)+'</span><span class="meta" style="padding-bottom:6px">'+revs.length+(revs.length===1?' reseña':' reseñas')+' · '+ruidoTag(revs.reduce(function(s,r){ return s+Number(r.ruido); },0)/revs.length)+' · porción '+porcionTag(revs.reduce(function(s,r){ return s+Number(r.porcion); },0)/revs.length).toLowerCase()+'</span></div>' : '<p class="hint">Nadie lo evaluó todavía.</p>';
-  var who = fueron.length ? '<div style="display:flex;align-items:center;gap:10px"><div class="avs">'+fueron.slice(0,6).map(function(u){ return av(u); }).join('')+'</div><span class="meta" style="margin-left:6px">'+(fueron.length===1?esc(firstName(fueron[0]))+' ya fue':fueron.length+' de tu tribu ya fueron')+'</span></div>' : '';
+  var voters = votersOf(id), voted = S.uid && voters.indexOf(S.uid) >= 0;
+  var score = revs.length ? '<div style="display:flex;align-items:flex-end;gap:16px"><span class="score-big">'+dec(revs.reduce(function(s,r){ return s+scoreOf(r); },0)/revs.length)+'</span><span class="meta" style="padding-bottom:6px">'+revs.length+(revs.length===1?' reseña':' reseñas')+' · '+ruidoTag(revs.reduce(function(s,r){ return s+Number(r.ruido); },0)/revs.length)+' · porción '+porcionTag(revs.reduce(function(s,r){ return s+Number(r.porcion); },0)/revs.length).toLowerCase()+'</span></div>' : '<p class="hint">Nadie lo evaluó todavía.</p>';
+  var who = fueron.length ? '<div class="meta"><span class="avs">'+fueron.slice(0,6).map(function(u){ return av(u); }).join('')+'</span>'+(fueron.length===1?esc(cap(firstName(fueron[0])))+' ya fue':fueron.length+' de la tribu ya fueron')+'</div>' : '';
   var by = a.propuestoPor ? 'Lo propuso '+esc(firstName(a.propuestoPor)) : 'Sugerido por tribu';
   openSheet(esc(a.nombre), '<p class="meta" style="margin:-10px 0 0">'+esc([a.barrio,a.categoria].filter(Boolean).join(' · '))+' · '+by+'</p>'+score+who+
-    '<div style="display:flex;flex-direction:column;gap:8px"><button type="button" class="btn ink" data-act="newSalida" data-id="'+esc(id)+'">Armar salida</button><button type="button" class="btn" data-act="evaluar" data-id="'+esc(id)+'">Ya fui, evaluar</button></div>');
+    '<div style="display:flex;flex-direction:column;gap:8px">'+
+    '<button type="button" class="btn ink" data-act="newSalida" data-id="'+esc(id)+'">Armar salida</button>'+
+    '<div style="display:flex;gap:8px"><button type="button" class="btn" data-act="vote" data-id="'+esc(id)+'" data-close="1">'+(voted?ICON.check+'Votado · '+voters.length:ICON.up+'Quiero ir · '+voters.length)+'</button><button type="button" class="btn" data-act="evaluar" data-id="'+esc(id)+'">Ya fui, evaluar</button></div></div>');
   flushProfiles();
 }
 function sheetSalida(sid){
   var draw = function(sheet){
     var s = S.salidas[sid]; if(!s){ closeSheet(); return; }
     var people = attendees(sid), n = people.length, isIn = S.uid && people.indexOf(S.uid) >= 0;
+    var member = S.uid && isMember(S.uid, s.tribe), tr = tribe(s.tribe);
     var past = s.fecha < todayStr() || s.estado === 'cancelada';
     var seats = '';
     for(var i=0;i<s.cupo;i++){ var u = people[i];
@@ -481,22 +616,25 @@ function sheetSalida(sid){
     if(!past){
       if(isIn) btns = '<button type="button" class="btn ok" data-act="leave" data-id="'+esc(sid)+'">'+ICON.check+'Vas · tocá para bajarte</button>';
       else if(n >= s.cupo) btns = '<button type="button" class="btn" disabled>Mesa llena</button>';
-      else btns = '<button type="button" class="btn ink" data-act="join" data-id="'+esc(sid)+'">Sumarme</button>';
+      else btns = '<button type="button" class="btn ink" data-act="join" data-id="'+esc(sid)+'">'+(member?'Sumarme':'Sumarme a la salida y a la tribu')+'</button>';
       if(s.organizador === S.uid) btns += '<button type="button" class="btn quiet" data-act="cancelSalida" data-id="'+esc(sid)+'">Cancelar salida</button>';
     }
-    sheet.querySelector('.body').innerHTML = '<p class="meta" style="margin:-10px 0 0">'+esc(fmtDate(s.fecha))+', '+esc(s.hora)+' · organiza '+esc(firstName(s.organizador))+'</p>'+
+    sheet.querySelector('.body').innerHTML = '<p class="meta" style="margin:-10px 0 0">'+esc(fmtDate(s.fecha))+', '+esc(s.hora)+(s.barrio?' · '+esc(s.barrio):'')+'</p>'+
+      '<p class="meta" style="margin:0"><span class="tag'+(member?' mine':'')+'">'+esc(tr ? tr.nombre : '')+'</span> · organiza '+esc(firstName(s.organizador))+'</p>'+
       '<div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">'+n+' de '+s.cupo+' lugares</span><div class="seats">'+seats+'</div></div>'+
+      (!member && !past ? '<p class="hint">Es una salida de otra tribu. Si te sumás, entrás también a '+esc(tr.nombre)+'.</p>' : '')+
       '<div style="display:flex;flex-direction:column;gap:8px">'+btns+'</div>';
     flushProfiles();
   };
-  openSheet(esc(S.salidas[sid].local), '<div class="body" style="display:flex;flex-direction:column;gap:18px"></div>', function(sheet){ sheet._refresh = function(){ draw(sheet); }; draw(sheet); });
+  openSheet(esc(S.salidas[sid].local), '<div class="body" style="display:flex;flex-direction:column;gap:16px"></div>', function(sheet){ sheet._refresh = function(){ draw(sheet); }; draw(sheet); });
 }
 function sheetTribe(tid){
   var draw = function(sheet){
     var t = S.tribes[tid]; if(!t){ closeSheet(); return; }
     var member = S.uid && isMember(S.uid, tid), pend = t.creador === S.uid ? pendingOf(tid) : [];
+    var up = Object.keys(S.salidas).filter(function(i){ var s=S.salidas[i]; return s.tribe===tid && s.estado!=='cancelada' && s.fecha>=todayStr(); }).length;
     var h = (t.descripcion ? '<p style="margin:-10px 0 0;color:var(--fg2)">'+esc(t.descripcion)+'</p>' : '')+
-      '<p class="meta" style="margin:0">'+membersOf(tid).length+' miembros · '+(t.tipo==='privada'?'privada':'pública')+'</p>';
+      '<p class="meta" style="margin:0">'+membersOf(tid).length+' miembros · '+antojosOf(tid).length+' lugares · '+up+(up===1?' salida próxima':' salidas próximas')+'</p>';
     if(pend.length) h += '<div><span class="lbl">Quieren sumarse</span><div class="list">'+pend.map(function(u){ return '<div class="item">'+av(u,'md')+'<span style="flex:1">'+esc(nm(u))+'</span><button type="button" class="mini ink" data-act="approve" data-id="'+esc(tid)+'" data-u="'+esc(u)+'">Aprobar</button></div>'; }).join('')+'</div></div>';
     if(member && t.tipo === 'privada') h += '<div class="field"><span class="lbl">Código para invitar</span><div class="code">'+esc(tid)+'</div><p class="hint">Quien lo use te pide acceso y lo aprobás acá.</p></div>';
     h += '<div style="display:flex;flex-direction:column;gap:8px">';
@@ -510,19 +648,31 @@ function sheetTribe(tid){
   openSheet(esc(S.tribes[tid].nombre), '<div class="body" style="display:flex;flex-direction:column;gap:18px"></div>', function(sheet){ sheet._refresh = function(){ draw(sheet); }; draw(sheet); });
 }
 function sheetNewAntojo(){
+  var cats = catsOf(activeTribe());
   openSheet('Proponer un lugar',
     '<div class="field"><label for="aN">Nombre</label><input id="aN" class="input" maxlength="80" placeholder="Ej.: Fukuro Noodle Bar"></div>'+
     '<div class="field"><label for="aB">Barrio</label><input id="aB" class="input" maxlength="60" placeholder="Ej.: Palermo"></div>'+
-    '<div class="field"><label for="aC">Tipo de comida <span class="meta" style="font-weight:400">(opcional)</span></label><input id="aC" class="input" maxlength="40" placeholder="Ej.: Ramen"></div>'+
-    '<button type="button" class="btn ink" data-act="saveAntojo">Proponer</button>');
+    '<div class="field"><label for="aC">Categoría</label><input id="aC" class="input" maxlength="40" list="catList" placeholder="Ej.: Ramen"><datalist id="catList">'+cats.map(function(c){ return '<option value="'+esc(c)+'">'; }).join('')+'</datalist></div>'+
+    (HAS_MAP ? '<div class="field"><span class="lbl">Ubicación</span><div id="miniMap" class="minimap"></div><p class="hint">Arrastrá el pin hasta el lugar.</p></div>' : '')+
+    '<button type="button" class="btn ink" data-act="saveAntojo">Proponer</button>',
+    function(sheet){
+      if(!HAS_MAP) return;
+      var c = map ? map.getCenter() : L.latLng(BA[0], BA[1]);
+      miniMap = L.map('miniMap', {zoomControl:false, attributionControl:false}).setView(c, 15);
+      L.tileLayer(tileUrl(), {maxZoom:19, subdomains:'abcd'}).addTo(miniMap);
+      var mk = L.marker(c, {draggable:true, icon:L.divIcon({className:'', html:'<div class="pin on">+</div>', iconSize:[34,34], iconAnchor:[17,17]})}).addTo(miniMap);
+      miniMap.on('click', function(e){ mk.setLatLng(e.latlng); });
+      sheet._pin = mk;
+      setTimeout(function(){ if(miniMap) miniMap.invalidateSize(); }, 200);
+    });
 }
 function sheetNewSalida(aid){
   var a = S.antojos[aid];
   openSheet('Armar salida', '<p class="meta" style="margin:-10px 0 0">'+esc(a.nombre)+'</p>'+
-    '<div style="display:flex;gap:8px"><div class="field" style="flex:1"><label for="sF">Día</label><input id="sF" type="date" class="input" min="'+todayStr()+'" value="'+todayStr()+'"></div><div class="field" style="width:130px"><label for="sH">Hora</label><input id="sH" type="time" class="input" value="21:00"></div></div>'+
+    '<div style="display:flex;gap:8px"><div class="field" style="flex:1"><label for="sF">Día</label><input id="sF" type="date" class="input" min="'+todayStr()+'" value="'+dayStr(1)+'"></div><div class="field" style="width:130px"><label for="sH">Hora</label><input id="sH" type="time" class="input" value="21:00"></div></div>'+
     '<fieldset style="border:0;padding:0;margin:0"><legend class="lbl" style="margin-bottom:6px">Personas</legend><div class="choice">'+
     [4,6,8].map(function(n){ return '<label><input type="radio" name="cupo" value="'+n+'" '+(n===6?'checked':'')+'>'+n+'</label>'; }).join('')+'</div></fieldset>'+
-    '<button type="button" class="btn ink" data-act="saveSalida" data-id="'+esc(aid)+'">Crear salida</button><p class="hint" style="text-align:center">Quedás anotado como organizador.</p>');
+    '<button type="button" class="btn ink" data-act="saveSalida" data-id="'+esc(aid)+'">Crear salida</button><p class="hint" style="text-align:center">La ven todas las tribus en Explorar. Quedás como organizador.</p>');
 }
 function sheetNewTribe(){
   openSheet('Nueva tribu',
@@ -542,9 +692,7 @@ var SCORE = [
 var PROF = [
   {id:'ruido', label:'Ruido', min:'Silencioso', max:'Bullicioso', tag:ruidoTag},
   {id:'porcion', label:'Porción', min:'Gourmet', max:'Abundante', tag:porcionTag}];
-var evalPhotos = [];
 function sheetEvaluar(preset){
-  evalPhotos = [];
   var pick = '';
   if(!preset){
     var seen = {};
@@ -564,7 +712,6 @@ function sheetEvaluar(preset){
     '<p class="lbl" style="margin:6px 0 -8px">Cómo es el lugar <span class="meta" style="font-weight:400">· no suma al puntaje</span></p>'+
     PROF.map(function(d){ return sl(d,true); }).join('')+
     '<div class="field"><label for="eC">Comentario <span class="meta" style="font-weight:400">(opcional)</span></label><textarea id="eC" class="input" maxlength="400"></textarea></div>'+
-    (assets ? '<div class="photos" id="ePh"></div><label class="btn" style="cursor:pointer">'+ICON.cam+'Agregar fotos<input type="file" accept="image/*" multiple id="eF" class="sr"></label>' : '')+
     '<button type="button" class="btn ink" data-act="publishReview">Publicar · +50 pts</button>',
     function(sheet){
       sheet._preset = preset;
@@ -577,15 +724,6 @@ function sheetEvaluar(preset){
       });
       var sel = sheet.querySelector('#eL');
       if(sel) sel.addEventListener('change', function(){ sheet.querySelector('#eOW').hidden = sel.value !== '__otro'; });
-      var f = sheet.querySelector('#eF');
-      if(f) f.addEventListener('change', function(){
-        Array.prototype.slice.call(f.files||[], 0, Math.max(0, 3 - evalPhotos.length)).forEach(function(file){
-          if(file.size > 20*1024*1024){ toast('Cada foto puede pesar hasta 20 MB.'); return; }
-          var ph = sheet.querySelector('#ePh'), tmp = document.createElement('span'); tmp.className='meta'; tmp.textContent='Subiendo…'; ph.appendChild(tmp);
-          assets.upload(file).then(function(r){ evalPhotos.push(r.id); var img=document.createElement('img'); img.src=r.url; img.alt='Foto adjunta'; ph.replaceChild(img,tmp); }, function(){ tmp.textContent='No se pudo subir'; });
-        });
-        f.value = '';
-      });
     });
 }
 
@@ -593,24 +731,35 @@ function sheetEvaluar(preset){
 var A = {
   tab: function(el){ S.tab = el.dataset.v; closeSheet(); render(); document.getElementById('view').scrollTop = 0; },
   close: closeSheet,
+  login: doLogin,
+  logout: function(){ if(!confirm('¿Cerrar sesión?')) return; store('tf-login', null); render(); },
+  hideDemo: function(){ S.hideDemo = true; store('tf-hide-demo','1'); render(); },
   pickTribe: sheetPickTribe,
   openAntojo: function(el){ sheetAntojo(el.dataset.id); },
   openSalida: function(el){ sheetSalida(el.dataset.id); },
   openTribe: function(el){ sheetTribe(el.dataset.id); },
   codeSheet: sheetCode,
-  hideDemo: function(){ S.hideDemo = true; store('tf-hide-demo','1'); render(); },
-  setActive: function(el){ S.active = el.dataset.id; store('tf-active', S.active); closeSheet(); render(); },
+  exFilter: function(el){ S.exFilter = el.dataset.v; render(); },
+  cat: function(el){ S.cat = el.dataset.v; render(); },
+  lugaresMode: function(el){ S.lugMode = el.dataset.v; render(); },
+  setActive: function(el){ S.active = el.dataset.id; S.cat = ''; store('tf-active', S.active); closeSheet(); render(); },
   perfilTab: function(el){ S.perfilTab = el.dataset.v; render(); },
-  vote: function(el){ if(!guard()) return; var id = el.dataset.id; var on = votersOf(id).indexOf(S.uid) < 0; act(setMine('votes','antojos',id, on ? true : undefined)).catch(function(){}); },
+  vote: function(el){
+    if(!guard()) return; var id = el.dataset.id; var on = votersOf(id).indexOf(S.uid) < 0;
+    act(setMine('votes','antojos',id, on ? true : undefined), on ? 'Sumaste tu voto.' : null).catch(function(){});
+    if(el.dataset.close) closeSheet();
+  },
   newAntojo: function(){ if(guard()) sheetNewAntojo(); },
-  saveAntojo: function(){
+  saveAntojo: function(el){
+    var sheet = el.closest('.sheet');
     var n = document.getElementById('aN').value.trim(), b = document.getElementById('aB').value.trim(), c = document.getElementById('aC').value.trim();
     if(!n){ toast('Escribí el nombre del lugar.'); return; }
     var tid = activeTribe(), lk = slug(n);
-    if(Object.keys(S.antojos).some(function(a){ return S.antojos[a].tribe === tid && S.antojos[a].localKey === lk; })){ toast('Ese lugar ya está en tu tribu.'); return; }
-    act(db.collection('antojos').add({tribe:tid, nombre:n, barrio:b, categoria:c, localKey:lk, propuestoPor:S.uid, createdAt:new Date().toISOString()})
-      .then(function(ref){ return setMine('votes','antojos',ref.id,true); }), 'Listo, lo propusiste.').catch(function(){});
-    closeSheet();
+    if(antojosOf(tid).some(function(a){ return S.antojos[a].localKey === lk; })){ toast('Ese lugar ya está en tu tribu.'); return; }
+    var doc = {tribe:tid, nombre:n, barrio:b, categoria:c, localKey:lk, propuestoPor:S.uid, createdAt:new Date().toISOString()};
+    if(sheet._pin){ var ll = sheet._pin.getLatLng(); doc.lat = Math.round(ll.lat*1e5)/1e5; doc.lng = Math.round(ll.lng*1e5)/1e5; }
+    act(db.collection('antojos').add(doc).then(function(ref){ return setMine('votes','antojos',ref.id,true); }), 'Listo, lo propusiste.').catch(function(){});
+    mapCat = '__force'; closeSheet();
   },
   newSalida: function(el){ if(guard()) sheetNewSalida(el.dataset.id); },
   saveSalida: function(el){
@@ -620,17 +769,16 @@ var A = {
     if(!h){ toast('Elegí un horario.'); return; }
     act(db.collection('salidas').add({tribe:a.tribe, antojo:el.dataset.id, local:a.nombre, barrio:a.barrio||'', fecha:f, hora:h, cupo:c, organizador:S.uid, estado:'confirmada', createdAt:new Date().toISOString()})
       .then(function(ref){ return setMine('asist','salidas',ref.id,new Date().toISOString()); }), 'Salida creada.').catch(function(){});
-    closeSheet(); S.tab = 'salidas'; render();
+    closeSheet(); S.tab = 'explorar'; S.exFilter = 'voy'; render();
   },
   join: function(el){
-    if(!guard()) return; var sid = el.dataset.id, s = S.salidas[sid]; el.disabled = true;
-    act(db.collection('salidas').doc(sid).acquire({holder:S.uid, ttlMs:4000}).then(function(l){
-      if(!l.acquired){ toast('Alguien se está sumando ahora. Probá en unos segundos.'); return; }
-      return db.collection('asist').get().then(function(snap){
-        var n = 0; snap.docs.forEach(function(d){ var x = d.data(); if(x && x.salidas && x.salidas[sid]) n++; });
-        if(n >= s.cupo){ toast('Se llenó justo antes que vos.'); return; }
-        return setMine('asist','salidas',sid,new Date().toISOString()).then(function(){ toast('Estás en la mesa.'); });
-      });
+    if(!guard()) return; var sid = el.dataset.id, s = S.salidas[sid], tr = tribe(s.tribe);
+    var member = isMember(S.uid, s.tribe);
+    if(!member && tr.tipo === 'privada'){ toast('Es una tribu privada.'); return; }
+    el.disabled = true;
+    var p = member ? Promise.resolve() : setMine('memberships','tribes',s.tribe,true);
+    act(p.then(function(){ return joinSalida(sid); }).then(function(ok){
+      if(ok) toast(member ? 'Estás en la mesa.' : 'Te sumaste a la salida y a '+tr.nombre+'.');
     })).catch(function(){}).then(function(){ el.disabled = false; schedule(); refreshSheet(); });
   },
   leave: function(el){ if(guard()) act(setMine('asist','salidas',el.dataset.id,undefined), 'Te bajaste.').catch(function(){}).then(refreshSheet); },
@@ -676,7 +824,7 @@ var A = {
     }
     var lk = slug(local), key = lk + '__' + monthKey();
     var r = {local:local, localKey:lk, antojo:antojo, tribe:tribeId, month:monthKey(), createdAt:new Date().toISOString(),
-      comentario:(sheet.querySelector('#eC').value||'').trim().slice(0,400), fotos:evalPhotos.slice(0,3)};
+      comentario:(sheet.querySelector('#eC').value||'').trim().slice(0,400), fotos:[]};
     SCORE.concat(PROF).forEach(function(d){ r[d.id] = Number(sheet.querySelector('#r_'+d.id).value); });
     var had = !!(((S.reviews[S.uid]||{}).items||{})[key]);
     act(setMine('reviews','items',key,r), had ? 'Reseña actualizada.' : 'Publicada. Sumaste 50 puntos.').catch(function(){});
@@ -690,10 +838,11 @@ document.addEventListener('click', function(e){
   var el = e.target.closest('[data-act]');
   if(el && el.tagName !== 'INPUT' && A[el.dataset.act] && !el.disabled) A[el.dataset.act](el);
 });
-document.addEventListener('change', function(e){
-  if(e.target.name === 'sc'){ S.rankScope = e.target.value; render(); }
+document.addEventListener('change', function(e){ if(e.target.name === 'sc'){ S.rankScope = e.target.value; render(); } });
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && document.getElementById('sheetRoot').firstChild) closeSheet();
+  if(e.key === 'Enter' && (e.target.id === 'lgName' || e.target.id === 'lgMail')) doLogin();
 });
-document.getElementById('sheetRoot').addEventListener('keydown', function(e){ if(e.key === 'Escape') closeSheet(); });
 
 var toastTimer = null;
 function toast(msg){
@@ -701,15 +850,74 @@ function toast(msg){
   clearTimeout(toastTimer); toastTimer = setTimeout(function(){ r.innerHTML = ''; }, 3000);
 }
 
-/* ---------- boot ---------- */
-S.active = load('tf-active');
-render();
-/* ---------- modo independiente (GitHub Pages u otro hosting): datos en este dispositivo ---------- */
-var SEED = {"tribes": {"ramen": {"nombre": "Ramen Lovers BA", "sigla": "RA", "descripcion": "Caldos, fideos y la búsqueda del tonkotsu perfecto.", "tipo": "publica", "creador": "", "approved": {}, "createdAt": "2026-11-05T13:00:00Z"}, "cafe": {"nombre": "Café de Especialidad", "sigla": "CE", "descripcion": "Tostadores, baristas y medialunas que valen la pena.", "tipo": "publica", "creador": "", "approved": {}, "createdAt": "2026-11-05T13:00:00Z"}, "parrillas": {"nombre": "Parrillas de Barrio", "sigla": "PB", "descripcion": "Bodegones y parrillas con buen vacío y sin pretensiones.", "tipo": "publica", "creador": "", "approved": {}, "createdAt": "2026-11-05T13:00:00Z"}, "burgers": {"nombre": "Burger Hunters", "sigla": "BH", "descripcion": "Smash, doble cheddar y papas que crujen.", "tipo": "publica", "creador": "", "approved": {}, "createdAt": "2026-11-05T13:00:00Z"}, "palermo-vc": {"nombre": "Comer en Palermo y Villa Crespo", "sigla": "PV", "descripcion": "Lugares para descubrir en los dos barrios, más allá de un solo tipo de comida.", "tipo": "publica", "creador": "", "approved": {}, "createdAt": "2026-11-05T13:00:00Z"}}, "antojos": {"seed-don-julio": {"nombre": "Don Julio", "barrio": "Palermo", "categoria": "Parrilla", "tribe": "parrillas", "localKey": "don-julio", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-la-cabrera": {"nombre": "La Cabrera", "barrio": "Palermo", "categoria": "Parrilla", "tribe": "parrillas", "localKey": "la-cabrera", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-hierro": {"nombre": "Hierro", "barrio": "Palermo", "categoria": "Parrilla", "tribe": "parrillas", "localKey": "hierro", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-el-preferido-de-palermo": {"nombre": "El Preferido de Palermo", "barrio": "Palermo", "categoria": "Bodegón", "tribe": "parrillas", "localKey": "el-preferido-de-palermo", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-los-bohemios": {"nombre": "Los Bohemios", "barrio": "Villa Crespo", "categoria": "Bodegón", "tribe": "parrillas", "localKey": "los-bohemios", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-don-zoilo": {"nombre": "Don Zoilo", "barrio": "Caballito", "categoria": "Parrilla", "tribe": "parrillas", "localKey": "don-zoilo", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-madre-rojas": {"nombre": "Madre Rojas", "barrio": "Caballito", "categoria": "Parrilla", "tribe": "parrillas", "localKey": "madre-rojas", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-bodegon-de-las-abuelas": {"nombre": "Bodegón de las Abuelas", "barrio": "Villa Gral. Mitre", "categoria": "Bodegón", "tribe": "parrillas", "localKey": "bodegon-de-las-abuelas", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-chinofino": {"nombre": "Chinofino", "barrio": "Palermo", "categoria": "Ramen", "tribe": "ramen", "localKey": "chinofino", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-fukuro-noodle-bar": {"nombre": "Fukuro Noodle Bar", "barrio": "Palermo", "categoria": "Ramen", "tribe": "ramen", "localKey": "fukuro-noodle-bar", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-mirutaki": {"nombre": "Mirutaki", "barrio": "Palermo", "categoria": "Ramen", "tribe": "ramen", "localKey": "mirutaki", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-harakiri-de-una": {"nombre": "Harakiri de Una", "barrio": "Palermo", "categoria": "Japonesa", "tribe": "ramen", "localKey": "harakiri-de-una", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-dotonbori": {"nombre": "Dotonbori", "barrio": "Villa Crespo", "categoria": "Japonesa", "tribe": "ramen", "localKey": "dotonbori", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-bilbao": {"nombre": "Bilbao", "barrio": "Palermo", "categoria": "Española", "tribe": "palermo-vc", "localKey": "bilbao", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}, "seed-a-donde": {"nombre": "A Donde", "barrio": "Villa Crespo", "categoria": "Argentina de autor", "tribe": "palermo-vc", "localKey": "a-donde", "propuestoPor": "", "createdAt": "2026-11-05T14:00:00Z"}}, "salidas": {}, "memberships": {"local": {"tribes": {"ramen": true, "parrillas": true}}}, "votes": {}, "asist": {}, "reviews": {}};
-function localDb(){
-  var KEY = 'tf-db-v1', data = null;
+/* ---------- datos demo (este dispositivo) ---------- */
+function buildSeed(){
+  var P = {u1:'Martina Castro',u2:'Juan Pérez',u3:'Sol Ríos',u4:'Tomi García',u5:'Caro Benítez',u6:'Nico Álvarez',u7:'Vale Martínez',u8:'Rami Paz'};
+  var T = function(n,s,d){ return {nombre:n, sigla:s, descripcion:d, tipo:'publica', creador:'', approved:{}, createdAt:'2026-11-05T13:00:00Z'}; };
+  var tribes = {
+    ramen:T('Ramen Lovers BA','RA','Caldos, fideos y la búsqueda del tonkotsu perfecto.'),
+    cafe:T('Café de Especialidad','CE','Tostadores, baristas y medialunas que valen la pena.'),
+    parrillas:T('Parrillas de Barrio','PB','Bodegones y parrillas con buen vacío y sin pretensiones.'),
+    burgers:T('Burger Hunters','BH','Smash, doble cheddar y papas que crujen.'),
+    'palermo-vc':T('Comer en Palermo y Villa Crespo','PV','Lugares para descubrir en los dos barrios.')
+  };
+  // Ubicaciones aproximadas, a nivel cuadra.
+  var A_ = [
+    ['don-julio','Don Julio','Palermo','Parrilla','parrillas',-34.5864,-58.4242],
+    ['la-cabrera','La Cabrera','Palermo','Parrilla','parrillas',-34.5889,-58.4333],
+    ['hierro','Hierro','Palermo','Parrilla','parrillas',-34.5827,-58.4349],
+    ['el-preferido-de-palermo','El Preferido de Palermo','Palermo','Bodegón','parrillas',-34.5854,-58.4253],
+    ['los-bohemios','Los Bohemios','Villa Crespo','Bodegón','parrillas',-34.5942,-58.4471],
+    ['don-zoilo','Don Zoilo','Caballito','Parrilla','parrillas',-34.6047,-58.4481],
+    ['madre-rojas','Madre Rojas','Caballito','Parrilla','parrillas',-34.6037,-58.4507],
+    ['bodegon-de-las-abuelas','Bodegón de las Abuelas','Villa Gral. Mitre','Bodegón','parrillas',-34.6000,-58.4540],
+    ['chinofino','Chinofino','Palermo','Ramen','ramen',-34.5907,-58.4294],
+    ['fukuro-noodle-bar','Fukuro Noodle Bar','Palermo','Ramen','ramen',-34.5806,-58.4363],
+    ['mirutaki','Mirutaki','Palermo','Ramen','ramen',-34.5776,-58.4325],
+    ['harakiri-de-una','Harakiri de Una','Palermo','Japonesa','ramen',-34.5905,-58.4279],
+    ['dotonbori','Dotonbori','Villa Crespo','Japonesa','ramen',-34.5967,-58.4429],
+    ['bilbao','Bilbao','Palermo','Española','palermo-vc',-34.5869,-58.4291],
+    ['a-donde','A Donde','Villa Crespo','Argentina de autor','palermo-vc',-34.5926,-58.4395],
+    ['lab-tostadores','LAB Tostadores','Palermo','Café','cafe',-34.5860,-58.4370],
+    ['cuervo-cafe','Cuervo Café','Palermo','Café','cafe',-34.5900,-58.4250],
+    ['burger-joint','Burger Joint','Palermo','Hamburguesas','burgers',-34.5880,-58.4280]
+  ];
+  var antojos = {}, idOf = {};
+  A_.forEach(function(r){ var id = 'seed-'+r[0]; idOf[r[0]] = id; antojos[id] = {nombre:r[1], barrio:r[2], categoria:r[3], tribe:r[4], localKey:r[0], lat:r[5], lng:r[6], propuestoPor:'', createdAt:'2026-11-05T14:00:00Z'}; });
+  var mem = function(list){ var o = {}; list.forEach(function(t){ o[t] = true; }); return {tribes:o}; };
+  var memberships = { local:mem(['ramen','parrillas']), u1:mem(['ramen','palermo-vc']), u2:mem(['ramen']), u3:mem(['ramen','cafe']),
+    u4:mem(['parrillas']), u5:mem(['parrillas','cafe']), u6:mem(['parrillas','burgers']), u7:mem(['cafe','palermo-vc']), u8:mem(['burgers','palermo-vc']) };
+  var vt = function(keys){ var o = {}; keys.forEach(function(k){ o[idOf[k]] = true; }); return {antojos:o}; };
+  var votes = { u1:vt(['fukuro-noodle-bar','chinofino','bilbao']), u2:vt(['fukuro-noodle-bar','mirutaki']), u3:vt(['fukuro-noodle-bar','lab-tostadores']),
+    u4:vt(['don-julio','hierro']), u5:vt(['don-julio','lab-tostadores','cuervo-cafe']), u6:vt(['los-bohemios','burger-joint']),
+    u7:vt(['cuervo-cafe','bilbao']), u8:vt(['a-donde','burger-joint']) };
+  var rv = function(lk, loc, tribe, v, c, daysAgo){ var d = new Date(); d.setDate(d.getDate()-daysAgo);
+    return {local:loc, localKey:lk, antojo:idOf[lk], tribe:tribe, month:monthKey(), createdAt:d.toISOString(), sabor:v[0], precio:v[1], atencion:v[2], ruido:v[3], porcion:v[4], comentario:c, fotos:[]}; };
+  var M = monthKey();
+  var reviews = {};
+  reviews.u2 = {items:{}}; reviews.u2.items['chinofino__'+M] = rv('chinofino','Chinofino','ramen',[8,7,8,8,5],'El tantanmen, sí o sí.',3);
+  reviews.u4 = {items:{}}; reviews.u4.items['don-julio__'+M] = rv('don-julio','Don Julio','parrillas',[10,6,9,6,8],'Vale cada peso. Reservar con tiempo.',2);
+  reviews.u5 = {items:{}}; reviews.u5.items['don-julio__'+M] = rv('don-julio','Don Julio','parrillas',[9,7,8,7,7],'',4);
+  reviews.u5.items['lab-tostadores__'+M] = rv('lab-tostadores','LAB Tostadores','cafe',[9,8,8,4,4],'Filtrados muy buenos.',1);
+  reviews.u6 = {items:{}}; reviews.u6.items['los-bohemios__'+M] = rv('los-bohemios','Los Bohemios','parrillas',[8,9,7,8,9],'Porciones para compartir.',5);
+  var salidas = {}, asist = {};
+  var sal = function(id, tribe, lk, off, hora, cupo, org, people){
+    var a = antojos[idOf[lk]];
+    salidas[id] = {tribe:tribe, antojo:idOf[lk], local:a.nombre, barrio:a.barrio, fecha:dayStr(off), hora:hora, cupo:cupo, organizador:org, estado:'confirmada', createdAt:new Date().toISOString()};
+    people.forEach(function(u, i){ asist[u] = asist[u] || {salidas:{}}; asist[u].salidas[id] = '2026-11-0'+(i+1)+'T12:00:00Z'; });
+  };
+  sal('s-lab','cafe','lab-tostadores',1,'10:30',4,'u5',['u5','u7']);
+  sal('s-fukuro','ramen','fukuro-noodle-bar',2,'21:00',6,'u1',['u1','u2','u3']);
+  sal('s-burger','burgers','burger-joint',3,'20:30',6,'u6',['u6','u8']);
+  sal('s-bilbao','palermo-vc','bilbao',4,'21:00',4,'u7',['u7','u1','u8']);
+  sal('s-donjulio','parrillas','don-julio',5,'21:30',8,'u4',['u4','u5','u6']);
+  var profiles = {}; Object.keys(P).forEach(function(k){ profiles[k] = {name:P[k]}; });
+  return {data:{tribes:tribes, antojos:antojos, salidas:salidas, memberships:memberships, votes:votes, asist:asist, reviews:reviews}, profiles:profiles};
+}
+function localDb(seed){
+  var KEY = 'tribu-db-v2', data = null;
   try{ data = JSON.parse(load(KEY) || 'null'); }catch(e){ data = null; }
-  if(!data) data = JSON.parse(JSON.stringify(SEED));
+  if(!data){ data = seed.data; store(KEY, JSON.stringify(data)); }
   COLS.forEach(function(c){ data[c] = data[c] || {}; });
   var subs = {};
   function save(){ store(KEY, JSON.stringify(data)); }
@@ -728,14 +936,21 @@ function localDb(){
     }; }
   }; } };
 }
+
+/* ---------- arranque ---------- */
+S.active = load('tf-active');
 var C = window.claude;
 if(!C || !C.use){
+  var seed = buildSeed();
   S.local = true; S.hideDemo = !!load('tf-hide-demo');
-  S.uid = 'local'; S.meName = 'Vos'; S.canWrite = true;
-  db = localDb();
+  S.uid = 'local'; S.meName = load('tf-name') || ''; S.canWrite = true;
+  S.profiles = seed.profiles; if(S.meName) S.profiles.local = {name:S.meName};
+  db = localDb(seed);
   COLS.forEach(function(c){ db.collection(c).onSnapshot(function(s){ var o = {}; s.docs.forEach(function(d){ o[d.id] = d.data(); }); S[c] = o; S.loaded[c] = true; S.ready = COLS.every(function(k){ return S.loaded[k]; }); schedule(); refreshSheet(); }); });
+  render();
   return;
 }
+render();
 Promise.all([C.use('user'), C.use('db')]).then(function(res){
   user = res[0]; db = res[1];
   var who = user ? Promise.all([user.me(), user.can('data.write')]) : Promise.resolve([null,false]);
@@ -752,7 +967,6 @@ Promise.all([C.use('user'), C.use('db')]).then(function(res){
       }, function(err){ S.error = err.code; S.ready = true; schedule(); });
     });
     setTimeout(function(){ if(!S.ready){ S.slow = true; S.ready = true; schedule(); } }, 10000);
-    C.use('assets').then(function(a){ assets = a; });
   });
 });
 })();

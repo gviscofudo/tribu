@@ -1,6 +1,6 @@
 # tribu
 
-App social gastronómica: lista de antojos por tribu, salidas grupales con cupo, reseñas con sliders y ranking mensual.
+App social gastronómica: login, salidas de todas las tribus, mapa de lugares con filtros, reseñas con sliders y ranking mensual.
 
 ## Archivos
 
@@ -28,3 +28,12 @@ Subí todos los archivos juntos a la raíz del repositorio.
 ## Modo de datos
 
 En GitHub Pages la app funciona en modo demo: los datos se guardan solo en el dispositivo de cada persona y arranca con tribus y locales de Palermo y Villa Crespo precargados. Para que sea multiusuario hace falta conectar un backend (por ejemplo, Supabase).
+
+## Pantallas
+
+1. **Login simulado:** nombre y email, o botones de Google y Apple. No crea cuentas.
+2. **Explorar:** salidas próximas de todas las tribus públicas, con filtros "Todas", "Mis tribus" y "Voy". Sumarte a una salida de otra tribu te suma también a esa tribu.
+3. **Lugares:** mapa (OpenStreetMap + CARTO) con filtros por categoría y vista de lista. Al proponer un lugar, se ubica arrastrando el pin.
+4. **Tribus** y **Perfil** (con cierre de sesión).
+
+Las ubicaciones de los lugares precargados son aproximadas, a nivel cuadra.
