@@ -130,6 +130,16 @@ nav.tabs button[aria-current="page"]{color:var(--fg);font-weight:700}
 .notif .ndot.read{background:transparent}
 .desc{font-size:14px;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .why{font-size:12px;font-weight:600;color:var(--accent)}
+.bnr{width:100%;aspect-ratio:16/9;border-radius:16px;object-fit:cover;display:block;background:var(--line)}
+.thumb{width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--line)}
+.hcards{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:2px 20px 8px;scroll-snap-type:x mandatory}
+.hcards::-webkit-scrollbar{display:none}
+.hcard{flex:0 0 78%;max-width:320px;scroll-snap-align:start;text-align:left;display:flex;flex-direction:column;gap:4px}
+.hcard .bnr{border-radius:14px;margin-bottom:4px}
+.photo-pick{position:relative}
+.photo-pick .change{position:absolute;right:10px;bottom:10px;min-height:36px;padding:0 14px;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.photo-pick input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.photo-pick .change:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
 .place{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
 .place .pm{height:150px}
 .place .pi{padding:12px 14px;display:flex;flex-direction:column;gap:4px}
@@ -159,6 +169,8 @@ nav.tabs button[aria-current="page"]{color:var(--fg);font-weight:700}
 .opt{min-height:48px;padding:0 18px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);font-weight:600;font-size:15px}
 .opt[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
 .opts.col{flex-direction:column}
+.opt:has(input:checked){background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+.opt:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
 .opts.col .opt{border-radius:14px;text-align:left;padding:14px 16px}
 #login{position:fixed;inset:0;z-index:3000;background:var(--bg);overflow-y:auto;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
 .login-in{max-width:400px;margin:0 auto;min-height:100%;padding:56px 24px 32px;display:flex;flex-direction:column;gap:14px}
@@ -525,7 +537,7 @@ function viewSalidas(tid){
     html += '<p class="section-t">Por confirmar</p><div class="list">' + open.map(function(i){
       var mine = !!marks(S.uid, i.id);
       var when = i.future.length > 1 ? i.future.length+' fechas' : fmtShort(i.future[0]);
-      return '<div class="item"><button type="button" class="item-main" data-act="openSalida" data-id="'+esc(i.id)+'"><span class="item-t">'+esc(i.s.local)+'</span>'+
+      return '<div class="item"><img class="thumb" src="'+salidaImg(i.id)+'" alt="" style="width:48px;height:48px;border-radius:10px"><button type="button" class="item-main" data-act="openSalida" data-id="'+esc(i.id)+'"><span class="item-t">'+esc(i.s.local)+'</span>'+
         '<span class="meta">'+esc(when)+' · '+(i.faltan === 1 ? 'falta 1' : 'faltan '+i.faltan)+'</span></button>'+
         (mine ? '<button type="button" class="mini ok" data-act="openSalida" data-id="'+esc(i.id)+'">'+ICON.check+'Anotado</button>' : '<button type="button" class="mini ink" data-act="openSalida" data-id="'+esc(i.id)+'">Anotarme</button>')+'</div>';
     }).join('') + '</div>';
@@ -565,17 +577,57 @@ var CAT_ICON = {
   'Té':'<path d="M5 20c0-8 5-14 15-15-1 10-7 15-15 15Z"/><path d="M5 20l8-8"/>',
   'Vermut':'<path d="M5 4h14l-7 8-7-8Z"/><path d="M12 12v8M8 20h8"/>',
   'Ramen':'<path d="M3 11h18a9 9 0 0 1-18 0Z"/><path d="M15 3l-3 8M19 3l-3 8"/>',
-  'Pastelería':'<path d="M4 14a8 6 0 0 1 16 0Z"/><path d="M6 14l1.2 6h9.6L18 14"/>'
+  'Pastelería':'<path d="M4 14a8 6 0 0 1 16 0Z"/><path d="M6 14l1.2 6h9.6L18 14"/>',
+  'Parrilla':'<path d="M4 10h16l-1.5 6h-13L4 10Z"/><path d="M7 16l-2 5M17 16l2 5M9 7c0-1.5 1-2 1-3.5M13 7c0-1.5 1-2 1-3.5"/>',
+  'Cerveza':'<path d="M5 7h10v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7Z"/><path d="M15 10h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2M5 7a3 3 0 0 1 5-2 3 3 0 0 1 5 2"/>',
+  'Hamburguesas':'<path d="M4 11a8 6 0 0 1 16 0Z"/><path d="M3 14h18M5 17h14a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3Z"/>'
 };
+var CAT_ALIAS = {'Japonesa':'Ramen','Bodegón':'Parrilla','Española':'Vinos','Argentina de autor':'Parrilla'};
+var CAT_COLORS = {'Vinos':['#5B1E2D','#8F3A4C'],'Café':['#4B3322','#80583A'],'Té':['#3F5B3A','#718F5C'],'Vermut':['#8C2C13','#C8572F'],'Ramen':['#6E4210','#B9822B'],
+  'Pastelería':['#8C4F4B','#C98F83'],'Parrilla':['#5A2214','#93401F'],'Cerveza':['#6E510C','#B28628'],'Hamburguesas':['#6B3A12','#A9642A']};
+function hashN(str){ var h = 2166136261; for(var i=0;i<String(str).length;i++){ h ^= String(str).charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+var bannerCache = {};
+function bannerURL(cat, seed){
+  var k = (CAT_ICON[cat] ? cat : (CAT_ALIAS[cat] || cat)), key = k + '|' + seed;
+  if(bannerCache[key]) return bannerCache[key];
+  var c = CAT_COLORS[k] || ['#1F5E3B','#2F7D4A'], ic = CAT_ICON[k] || '<circle cx="12" cy="12" r="7"/><path d="M8 12h8"/>', r = hashN(seed), dots = '';
+  var rnd = function(){ r = (r + 0x6D2B79F5) >>> 0; var t = r; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  var spots = [[40,40],[95,135],[40,140],[255,140],[290,40],[200,25],[120,30]];
+  for(var i=0;i<spots.length;i++){ var x = spots[i][0] + Math.round(rnd()*24-12), y = spots[i][1] + Math.round(rnd()*20-10), sc = 0.9 + rnd()*0.6;
+    dots += "<g transform='translate("+x+" "+y+") scale("+sc+") translate(-12 -12)' opacity='0.14'>"+ic.replace(/"/g,"'")+"</g>"; }
+  var svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='"+c[1]+"'/><stop offset='1' stop-color='"+c[0]+"'/></linearGradient></defs>"+
+    "<rect width='320' height='180' fill='url(#g)'/><circle cx='"+(200 + Math.round(rnd()*80))+"' cy='"+(30 + Math.round(rnd()*60))+"' r='90' fill='#fff' opacity='0.07'/>"+
+    "<g fill='none' stroke='#fff' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'>"+dots+
+    "<g transform='translate(160 90) scale(3.6) translate(-12 -12)' opacity='0.95'>"+ic.replace(/"/g,"'")+"</g></g></svg>";
+  return (bannerCache[key] = 'data:image/svg+xml,' + encodeURIComponent(svg));
+}
+function deguImg(id){ var d = S.degus[id]; return d.foto || bannerURL(d.tipo, id); }
+function salidaImg(sid){ var s = S.salidas[sid]; if(s.foto) return s.foto; if(s.degu && S.degus[s.degu]) return deguImg(s.degu);
+  var a = S.antojos[s.antojo]; return bannerURL(a ? a.categoria : '', sid); }
+function compressImage(file, cb){
+  var fr = new FileReader();
+  fr.onload = function(){ var img = new Image();
+    img.onload = function(){ var W = 960, sc = Math.min(1, W / img.width), cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
+      try{ cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); cb(cv.toDataURL('image/jpeg', 0.72)); }catch(e){ cb(null); } };
+    img.onerror = function(){ cb(null); }; img.src = fr.result; };
+  fr.onerror = function(){ cb(null); }; fr.readAsDataURL(file);
+}
 function catIcon(c){ return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(CAT_ICON[c]||'<circle cx="12" cy="12" r="8"/>')+'</svg>'; }
-function deguRow(x, why){
+function deguWhen(d){ return fmtShort(d); }
+function deguRow(x){
   var d = x.d, left = d.cupo - x.n;
   var btn = x.me ? '<button type="button" class="mini ok" data-act="openDegu" data-id="'+esc(x.id)+'">'+ICON.check+'Vas</button>'
     : x.st === 'completa' ? '<span class="meta">Completa</span>' : '<span class="num">'+money(d.precio)+'</span>';
-  return '<div class="item" style="align-items:flex-start"><div class="date" aria-hidden="true"><b>'+dObj(d.fecha).getDate()+'</b><span>'+esc(monShort(d.fecha))+'</span></div>'+
-    '<button type="button" class="item-main" data-act="openDegu" data-id="'+esc(x.id)+'">'+(why ? '<span class="why">'+esc(why)+'</span>' : '')+'<span class="item-t">'+esc(d.titulo)+'</span>'+
+  return '<div class="item" style="align-items:flex-start"><img class="thumb" src="'+deguImg(x.id)+'" alt="">'+
+    '<button type="button" class="item-main" data-act="openDegu" data-id="'+esc(x.id)+'"><span class="item-t">'+esc(d.titulo)+'</span>'+
     '<span class="desc">'+esc(d.corta)+'</span>'+
-    '<span class="meta">'+esc(d.lugar)+', '+esc(d.barrio)+' · '+esc(d.hora)+(x.st === 'completa' ? '' : ' · '+(left===1?'queda 1 lugar':'quedan '+left+' lugares'))+'</span></button>'+btn+'</div>';
+    '<span class="meta">'+esc(deguWhen(d))+' · '+esc(d.barrio)+(x.st === 'completa' ? '' : ' · '+(left===1?'queda 1 lugar':'quedan '+left))+'</span></button>'+btn+'</div>';
+}
+function deguCard(x, why){
+  var d = x.d;
+  return '<button type="button" class="hcard" data-act="openDegu" data-id="'+esc(x.id)+'"><img class="bnr" src="'+deguImg(x.id)+'" alt="">'+
+    '<span class="why">'+esc(why)+'</span><span class="item-t">'+esc(d.titulo)+'</span><span class="meta">'+esc(deguWhen(d))+' · '+esc(d.lugar)+' · '+money(d.precio)+'</span></button>';
 }
 function viewDegus(){
   var all = Object.keys(S.degus).map(dinfo).filter(function(x){ return x.st !== 'pasada'; });
@@ -592,7 +644,7 @@ function viewDegus(){
   var sug = all.map(function(x){ return {x:x, s:suggest(x)}; }).filter(function(o){ return o.s && !o.x.me && o.x.st !== 'completa'; })
     .sort(function(a,b){ return b.s.score - a.s.score || byDate(a.x, b.x); }).slice(0,3);
   var sugIds = sug.map(function(o){ return o.x.id; });
-  if(sug.length) html += '<p class="section-t">Para vos</p><div class="list">'+sug.map(function(o){ return deguRow(o.x, o.s.why); }).join('')+'</div>';
+  if(sug.length) html += '<p class="section-t">Para vos</p><div class="hcards">'+sug.map(function(o){ return deguCard(o.x, o.s.why); }).join('')+'</div>';
   else if(!profile()) html += '<div class="callout" style="margin-bottom:6px"><div style="flex:1"><div style="font-weight:600">Armá tus sugerencias</div><div class="meta">Contanos qué te gusta y te mostramos experiencias para vos.</div></div><button type="button" class="mini ink" data-act="editInterests">Empezar</button></div>';
   var rest = all.filter(function(x){ return sugIds.indexOf(x.id) < 0; }).sort(byDate);
   html += '<p class="section-t">'+(sug.length ? 'Todas' : 'Próximas')+'</p><div class="list">'+rest.map(function(x){ return deguRow(x); }).join('')+'</div>';
@@ -766,7 +818,8 @@ function sheetSalida(sid){
   live(esc(S.salidas[sid].local), function(b){
     if(!S.salidas[sid]){ closeSheet(); return; }
     var i = info(sid), s = i.s, alive = i.st === 'abierta' || i.st === 'confirmada' || i.st === 'llena';
-    var h = '<p class="meta" style="margin:-10px 0 0">'+(s.barrio?esc(s.barrio)+' · ':'')+'propuso '+esc(firstName(s.organizador))+' · mínimo '+i.min+', máximo '+i.max+'</p>';
+    var h = '<img class="bnr" src="'+salidaImg(sid)+'" alt="" style="margin-top:-6px">'+
+      '<p class="meta" style="margin:0">'+esc(tribe(s.tribe) ? tribe(s.tribe).nombre+' · ' : '')+(s.barrio?esc(s.barrio)+' · ':'')+'propuso '+esc(firstName(s.organizador))+' · mínimo '+i.min+', máximo '+i.max+'</p>';
     if(i.conf){
       var seats = ''; for(var k=0;k<i.max;k++){ var u = i.conf.people[k]; seats += u ? '<span class="seat" role="img" aria-label="'+esc(nm(u))+'">'+esc(initials(nm(u)))+'</span>' : '<span class="seat free" role="img" aria-label="Lugar libre"></span>'; }
       h += '<div class="callout"><div style="flex:1"><div style="font-weight:700">'+({confirmada:'Confirmada',llena:'Mesa llena',realizada:'Realizada'}[i.st]||'')+'</div><div class="meta">'+esc(fmtDate(i.conf.fecha))+', '+esc(i.conf.hora)+'</div></div></div>'+
@@ -795,7 +848,8 @@ function sheetDegu(did){
     var x = dinfo(did), d = x.d, tid = activeTribe(), pct = Math.min(100, Math.round(x.n / d.cupo * 100));
     var friends = inscriptos(did).filter(function(u){ return u !== S.uid && myTribes().some(function(t){ return isMember(u, t); }); });
     var sg = suggest(x);
-    var h = '<p class="meta" style="margin:-10px 0 0">'+esc(d.tipo)+' · '+esc(fmtDate(d.fecha))+', '+esc(d.hora)+'</p>'+
+    var h = '<img class="bnr" src="'+deguImg(did)+'" alt="" style="margin-top:-6px">'+
+      '<p class="meta" style="margin:0">'+esc(d.tipo)+' · '+esc(fmtDate(d.fecha))+', '+esc(d.hora)+'</p>'+
       (sg ? '<span class="why" style="margin-top:-8px">'+esc(sg.why)+'</span>' : '')+
       '<p style="margin:0;color:var(--fg2)">'+esc(d.descripcion)+'</p>'+
       '<div class="list"><div class="item"><div class="item-main"><span class="meta">Incluye</span><span style="font-weight:500">'+esc(d.incluye)+'</span></div><span class="price">'+money(d.precio)+'</span></div>'+
@@ -810,7 +864,7 @@ function sheetDegu(did){
     if(x.me) h += '<button type="button" class="btn ok" data-act="desinscribir" data-id="'+esc(did)+'">'+ICON.check+'Vas · tocá para bajarte</button>';
     else if(x.st === 'completa') h += '<button type="button" class="btn" disabled>Completa</button>';
     else h += '<button type="button" class="btn ink" data-act="inscribir" data-id="'+esc(did)+'">Anotarme · '+money(d.precio)+'</button>';
-    if(tid && x.st !== 'completa') h += '<button type="button" class="btn quiet" data-act="deguTribu" data-id="'+esc(did)+'">Proponérsela a '+esc(tribe(tid).nombre)+'</button>';
+    if(tid && x.st !== 'completa') h += '<button type="button" class="btn quiet" data-act="deguTribu" data-id="'+esc(did)+'">Proponérsela a '+(myTribes().length > 1 ? 'una tribu' : esc(tribe(tid).nombre))+'</button>';
     h += '</div><p class="hint" style="text-align:center">El pago es una simulación: no se cobra nada.</p>';
     if(placeMap){ try{ placeMap.remove(); }catch(e){} placeMap = null; }
     b.innerHTML = h;
@@ -853,14 +907,29 @@ function optRow(fecha, hora, removable){
     (removable ? '<button type="button" class="x" data-act="delOpt" aria-label="Quitar esta fecha" style="margin-bottom:4px">'+ICON.x+'</button>' : '<span style="width:40px;flex-shrink:0"></span>')+'</div>';
 }
 function sheetNewSalida(aid, preset){
-  var a = aid ? S.antojos[aid] : null, p = preset || {};
-  openSheet('Proponer salida', '<p class="meta" style="margin:-10px 0 0">'+esc(a ? a.nombre : p.local)+'</p>'+
+  var a = aid ? S.antojos[aid] : null, p = preset || {}, mine = myTribes();
+  var def = (a && mine.indexOf(a.tribe) >= 0) ? a.tribe : activeTribe();
+  var img = a ? bannerURL(a.categoria, aid + Date.now()) : (p.degu ? deguImg(p.degu) : bannerURL('', 'x'));
+  var tribes = mine.length > 1
+    ? '<fieldset style="border:0;padding:0;margin:0"><legend class="lbl" style="margin-bottom:6px">¿En qué tribu la publicás?</legend><div class="opts">'+mine.map(function(t){
+        return '<label class="opt" style="display:inline-flex;align-items:center;cursor:pointer;position:relative"><input type="radio" name="sTribe" value="'+esc(t)+'" '+(t===def?'checked':'')+' style="position:absolute;opacity:0;pointer-events:none">'+esc(tribe(t).nombre)+'</label>'; }).join('')+'</div></fieldset>'
+    : '<p class="meta" style="margin:0">Se publica en <b>'+esc(def ? tribe(def).nombre : '')+'</b>.</p>';
+  openSheet('Proponer salida',
+    '<div class="photo-pick"><img class="bnr" id="sImg" src="'+img+'" alt="Portada de la salida"><label class="change">'+'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg>'+'Cambiar foto<input type="file" accept="image/*" id="sFoto"></label></div>'+
+    '<p class="item-t" style="margin:-6px 0 0">'+esc(a ? a.nombre : p.local)+'</p>'+ tribes +
     '<div class="field"><span class="lbl">Fechas posibles</span><div id="optRows" style="display:flex;flex-direction:column;gap:8px">'+optRow(p.fecha || dayStr(1), p.hora || '21:00', false)+'</div>'+
     (p.fija ? '<p class="hint">La fecha la pone la experiencia.</p>' : '<button type="button" class="btn quiet" data-act="addOpt" style="justify-content:flex-start;padding:0">'+ICON.plus+'Agregar otra fecha</button><p class="hint">Cada uno marca las fechas que puede. Se confirma la primera que llegue al mínimo.</p>')+'</div>'+
     '<div style="display:flex;gap:8px"><div class="field" style="flex:1"><label for="sMin">Mínimo de personas</label><input id="sMin" type="number" inputmode="numeric" class="input" min="2" max="20" value="'+(p.min||4)+'"></div>'+
     '<div class="field" style="flex:1"><label for="sMax">Máximo</label><input id="sMax" type="number" inputmode="numeric" class="input" min="2" max="30" value="'+(p.max||6)+'"></div></div>'+
-    '<button type="button" class="btn ink" data-act="saveSalida" data-id="'+esc(aid||'')+'" data-degu="'+esc(p.degu||'')+'">Publicar en la tribu</button>',
-    function(sheet){ if(p.fija) sheet.querySelectorAll('.o-f,.o-h').forEach(function(i){ i.readOnly = true; }); });
+    '<button type="button" class="btn ink" data-act="saveSalida" data-id="'+esc(aid||'')+'" data-degu="'+esc(p.degu||'')+'" data-def="'+esc(def||'')+'">Publicar</button>',
+    function(sheet){
+      if(p.fija) sheet.querySelectorAll('.o-f,.o-h').forEach(function(i){ i.readOnly = true; });
+      sheet.querySelector('#sFoto').addEventListener('change', function(e){
+        var f = e.target.files && e.target.files[0]; if(!f) return;
+        if(!/^image\//.test(f.type)){ toast('Elegí una imagen.'); return; }
+        compressImage(f, function(url){ if(!url){ toast('No se pudo leer la foto.'); return; } sheet._foto = url; sheet.querySelector('#sImg').src = url; });
+      });
+    });
 }
 function sheetNewTribe(){
   openSheet('Nueva tribu',
@@ -957,7 +1026,9 @@ var A = {
   },
   delOpt: function(el){ el.closest('.optrow').remove(); },
   saveSalida: function(el){
-    var aid = el.dataset.id, did = el.dataset.degu, a = aid ? S.antojos[aid] : null, dg = did ? S.degus[did] : null, t = todayStr(), tid = activeTribe();
+    var sheet = el.closest('.sheet'), aid = el.dataset.id, did = el.dataset.degu, a = aid ? S.antojos[aid] : null, dg = did ? S.degus[did] : null, t = todayStr();
+    var sel = document.querySelector('input[name=sTribe]:checked'), tid = sel ? sel.value : el.dataset.def;
+    if(!tid){ toast('Elegí una tribu.'); return; }
     var opts = [], seen = {}, bad = false;
     Array.prototype.slice.call(document.querySelectorAll('#optRows .optrow')).forEach(function(r, k){
       var f = r.querySelector('.o-f').value, h = r.querySelector('.o-h').value;
@@ -967,14 +1038,14 @@ var A = {
     if(!(mn >= 2)){ toast('El mínimo tiene que ser al menos 2.'); return; }
     if(!(mx >= mn)){ toast('El máximo no puede ser menor que el mínimo.'); return; }
     opts.sort(function(x,y){ return (x.fecha+x.hora).localeCompare(y.fecha+y.hora); });
-    var doc = {tribe: a ? a.tribe : tid, antojo: aid || '', degu: did || '', local: a ? a.nombre : dg.titulo+' · '+dg.lugar, barrio: a ? (a.barrio||'') : dg.barrio,
+    var doc = {tribe: tid, foto: sheet._foto || '', antojo: aid || '', degu: did || '', local: a ? a.nombre : dg.titulo+' · '+dg.lugar, barrio: a ? (a.barrio||'') : dg.barrio,
       opciones:opts, min:mn, max:mx, confirmada:'', organizador:S.uid, estado:'activa', createdAt:new Date().toISOString()};
     act(db.collection('salidas').add(doc).then(function(ref){
       var o = {}; opts.forEach(function(x){ o[x.id] = true; });
       return serial('asist', function(){ var cur = Object.assign({}, S.asist[S.uid] || {}), sal = Object.assign({}, cur.salidas || {});
         sal[ref.id] = {o:o, at:new Date().toISOString()}; cur.salidas = sal; S.asist[S.uid] = cur; return db.collection('asist').doc(S.uid).set(cur); });
-    }), 'Publicada en tu tribu.').catch(function(){});
-    closeSheet(); S.tab = 'salidas'; render();
+    }), 'Publicada en '+tribe(tid).nombre+'.').catch(function(){});
+    S.active = tid; store('tf-active', tid); closeSheet(); S.tab = 'salidas'; render();
   },
   mark: function(el){ var on = el.getAttribute('aria-pressed') !== 'true'; el.disabled = true;
     act(markOption(el.dataset.id, el.dataset.o, on)).catch(function(){}).then(function(){ schedule(); refreshSheet(); }); },
@@ -1092,7 +1163,7 @@ function buildSeed(){
   return {data:{tribes:tribes, antojos:antojos, salidas:salidas, memberships:memberships, votes:votes, asist:asist, reviews:reviews, degus:degus, inscripciones:inscripciones}, profiles:profiles};
 }
 function localDb(seed){
-  var KEY = 'tribu-db-v6', data = null;
+  var KEY = 'tribu-db-v7', data = null;
   try{ data = JSON.parse(load(KEY) || 'null'); }catch(e){ data = null; }
   if(!data){ data = seed.data; store(KEY, JSON.stringify(data)); }
   COLS.forEach(function(c){ data[c] = data[c] || {}; });

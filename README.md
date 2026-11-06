@@ -9,6 +9,8 @@ Organizá salidas con tu grupo, sin perder nada en el chat. Y sumate a experienc
 
 - **Tribus privadas:** tu grupo de amigos o del trabajo. Se entra solo con código de invitación.
 - **Salidas:** proponés una o varias fechas con un mínimo y un máximo de personas. Cada uno marca "Puedo" y se confirma la primera fecha que llega al mínimo.
+- **Publicar en una tribu:** al proponer una salida (desde un lugar o una experiencia) elegís en cuál de tus tribus se publica.
+- **Fotos de portada:** cada experiencia y cada salida tiene un banner. Por defecto se genera una ilustración según la categoría; al crear una salida podés subir tu propia foto (se achica automáticamente).
 - **Lugares:** mapa y lista de los lugares que quiere conocer tu tribu, con votos y filtros por categoría.
 - **Experiencias:** actividades abiertas por categoría (vinos, café, té, vermut, ramen, pastelería) con fecha, cupo, mínimo para que se haga y precio. Arriba, "Para vos" con hasta 3 sugeridas según tus intereses; abajo, todas. Cada experiencia tiene una descripción breve y el detalle del lugar (dirección, descripción y mapa). Te anotás solo o se la proponés a tu tribu.
 - **Perfil:** reseñas con sliders, puntos y ranking dentro de tu tribu.
