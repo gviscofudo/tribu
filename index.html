@@ -143,6 +143,9 @@ nav.tabs button[aria-current="page"]{color:var(--fg);font-weight:700}
 .place{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
 .place .pm{height:150px}
 .place .pi{padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.cacique{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent-bg);color:var(--accent)}
+.cacique svg{width:12px;height:12px}
+.danger{color:#B3261E}
 .ichips{display:flex;flex-wrap:wrap;gap:6px}
 .ichip{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
 /* onboarding */
@@ -309,6 +312,8 @@ function tribe(tid){ return S.tribes[tid]; }
 function isMember(u,tid){ var m = S.memberships[u]; return !!(tribe(tid) && m && m.tribes && m.tribes[tid]); }
 function membersOf(tid){ return Object.keys(S.memberships).filter(function(u){ return isMember(u,tid); }); }
 function myTribes(){ return Object.keys(S.tribes).filter(function(t){ return isMember(S.uid,t); }).sort(function(a,b){ return S.tribes[a].nombre.localeCompare(S.tribes[b].nombre); }); }
+function isCacique(u, tid){ var t = tribe(tid); return !!t && t.creador === u; }
+function caciqueTag(){ return '<span class="cacique">'+logoSVG(false).replace('<svg ','<svg width="12" height="12" ')+'Cacique</span>'; }
 function activeTribe(){ var mine = myTribes(); if(S.active && mine.indexOf(S.active) >= 0) return S.active; return mine[0] || null; }
 
 /* ---------- lugares ---------- */
@@ -464,6 +469,20 @@ function markOption(sid, oid, on){
       return ref.update({confirmada:oid}).then(function(){ toast('¡Se confirmó! '+s.local+', '+fmtShort(o)+'.'); });
     }
   });
+}
+
+function removeFromTribe(u, tid){
+  var m = Object.assign({}, S.memberships[u] || {}), tr = Object.assign({}, m.tribes || {}); delete tr[tid]; m.tribes = tr;
+  var a = Object.assign({}, S.asist[u] || {}), sal = Object.assign({}, a.salidas || {});
+  Object.keys(sal).forEach(function(sid){ if(S.salidas[sid] && S.salidas[sid].tribe === tid) delete sal[sid]; }); a.salidas = sal;
+  return Promise.all([db.collection('memberships').doc(u).set(m), db.collection('asist').doc(u).set(a)]);
+}
+function deleteTribe(tid){
+  var ops = [];
+  Object.keys(S.memberships).forEach(function(u){ if(S.memberships[u] && S.memberships[u].tribes && S.memberships[u].tribes[tid]) ops.push(removeFromTribe(u, tid)); });
+  Object.keys(S.antojos).forEach(function(a){ if(S.antojos[a].tribe === tid) ops.push(db.collection('antojos').doc(a).remove()); });
+  Object.keys(S.salidas).forEach(function(x){ if(S.salidas[x].tribe === tid) ops.push(db.collection('salidas').doc(x).remove()); });
+  return Promise.all(ops).then(function(){ return db.collection('tribes').doc(tid).remove(); }).then(function(){ if(S.active === tid){ S.active = null; store('tf-active', null); } });
 }
 
 /* ---------- mapa ---------- */
@@ -790,19 +809,33 @@ function sheetPickTribe(){
     var tid = activeTribe(), mine = myTribes();
     b.innerHTML = (mine.length ? '<div class="list">'+mine.map(function(id){ var t = S.tribes[id];
       return '<div class="item"><span class="dot" aria-hidden="true">'+esc(t.sigla||initials(t.nombre))+'</span><button type="button" class="item-main" data-act="setActive" data-id="'+esc(id)+'"><span class="item-t">'+esc(t.nombre)+'</span><span class="meta">'+membersOf(id).length+(membersOf(id).length===1?' integrante':' integrantes')+'</span></button>'+
-        (id===tid ? '<button type="button" class="mini" data-act="openTribe" data-id="'+esc(id)+'">Ver</button>' : '')+'</div>'; }).join('')+'</div>' : '<p class="hint">Todavía no estás en ninguna tribu.</p>')+
+        (isCacique(S.uid,id) ? caciqueTag() : '')+'<button type="button" class="mini" data-act="openTribe" data-id="'+esc(id)+'" aria-label="Ver '+esc(t.nombre)+'">Ver</button></div>'; }).join('')+'</div>' : '<p class="hint">Todavía no estás en ninguna tribu.</p>')+
       '<div style="display:flex;flex-direction:column;gap:8px"><button type="button" class="btn ink" data-act="newTribe">'+ICON.plus+'Crear tribu</button><button type="button" class="btn" data-act="codeSheet">Unirme con un código</button></div>';
   });
 }
 function sheetTribe(tid){
   live(esc(S.tribes[tid].nombre), function(b){
     var t = S.tribes[tid]; if(!t){ closeSheet(); return; }
-    var mem = membersOf(tid);
+    var mem = membersOf(tid).sort(function(a,c){ return (c === t.creador) - (a === t.creador); }), boss = isCacique(S.uid, tid);
     b.innerHTML = (t.descripcion ? '<p style="margin:-10px 0 0;color:var(--fg2)">'+esc(t.descripcion)+'</p>' : '')+
       '<div class="field"><span class="lbl">Código para invitar</span><div class="code">'+esc(t.codigo)+'</div><p class="hint">Pasáselo a tu grupo por WhatsApp. Con este código entran directo.</p></div>'+
-      '<div><span class="lbl">'+mem.length+(mem.length===1?' integrante':' integrantes')+'</span><div class="list">'+mem.map(function(u){ return '<div class="item">'+av(u,'md')+'<span style="flex:1">'+esc(nm(u))+(u===S.uid?' (vos)':'')+'</span>'+(u===t.creador?'<span class="meta">Creó la tribu</span>':'')+'</div>'; }).join('')+'</div></div>'+
-      '<button type="button" class="btn quiet" data-act="leaveTribe" data-id="'+esc(tid)+'">Salir de la tribu</button>';
+      '<div><span class="lbl">'+mem.length+(mem.length===1?' integrante':' integrantes')+'</span><div class="list">'+mem.map(function(u){
+        var right = u === t.creador ? caciqueTag()
+          : boss ? '<button type="button" class="mini" data-act="memberMenu" data-id="'+esc(tid)+'" data-u="'+esc(u)+'" aria-label="Opciones para '+esc(nm(u))+'">···</button>' : '';
+        return '<div class="item">'+av(u,'md')+'<span style="flex:1">'+esc(nm(u))+(u===S.uid?' (vos)':'')+'</span>'+right+'</div>'; }).join('')+'</div></div>'+
+      (boss ? '<p class="hint">Sos cacique de esta tribu: podés quitar integrantes, pasar el mando o borrar la tribu.</p>' : '<p class="hint">'+esc(cap(firstName(t.creador)))+' es quien administra la tribu.</p>')+
+      '<div style="display:flex;flex-direction:column;gap:4px">'+
+      (boss ? '<button type="button" class="btn quiet danger" data-act="deleteTribe" data-id="'+esc(tid)+'">Borrar la tribu</button>' : '')+
+      '<button type="button" class="btn quiet" data-act="leaveTribe" data-id="'+esc(tid)+'">Salir de la tribu</button></div>';
   });
+}
+function sheetMember(tid, u){
+  var t = S.tribes[tid];
+  openSheet(esc(nm(u)), '<p class="meta" style="margin:-10px 0 0">Integrante de '+esc(t.nombre)+'</p>'+
+    '<div style="display:flex;flex-direction:column;gap:8px">'+
+    '<button type="button" class="btn" data-act="makeCacique" data-id="'+esc(tid)+'" data-u="'+esc(u)+'">'+logoSVG(false).replace('<svg ','<svg width="18" height="18" style="color:var(--cardon)" ')+'Nombrar cacique</button>'+
+    '<button type="button" class="btn danger" data-act="kick" data-id="'+esc(tid)+'" data-u="'+esc(u)+'">Quitar de la tribu</button></div>'+
+    '<p class="hint">Si nombrás a otra persona como cacique, vos pasás a ser integrante.</p>');
 }
 function sheetAntojo(id){
   var a = S.antojos[id], members = membersOf(a.tribe), revs = reviewsOfLocal(a.localKey), fueron = [];
@@ -1075,7 +1108,23 @@ var A = {
     act(setMine('memberships','tribes',tid,true).then(function(){ S.active = tid; store('tf-active', tid); }), 'Entraste a '+S.tribes[tid].nombre+'.').catch(function(){});
     closeSheet();
   },
-  leaveTribe: function(el){ var t = S.tribes[el.dataset.id]; if(!confirm('¿Salir de '+t.nombre+'?')) return; act(setMine('memberships','tribes',el.dataset.id,undefined), 'Saliste de la tribu.').catch(function(){}); closeSheet(); },
+  memberMenu: function(el){ sheetMember(el.dataset.id, el.dataset.u); },
+  kick: function(el){ var tid = el.dataset.id, u = el.dataset.u, t = S.tribes[tid];
+    if(!isCacique(S.uid, tid) || !confirm('¿Quitar a '+nm(u)+' de '+t.nombre+'?')) return;
+    act(removeFromTribe(u, tid), nm(u).split(' ')[0]+' ya no está en la tribu.').catch(function(){}); sheetTribe(tid); },
+  makeCacique: function(el){ var tid = el.dataset.id, u = el.dataset.u, t = S.tribes[tid];
+    if(!isCacique(S.uid, tid) || !confirm('¿Nombrar a '+nm(u)+' cacique de '+t.nombre+'? Vos pasás a ser integrante.')) return;
+    act(db.collection('tribes').doc(tid).update({creador:u}), nm(u).split(' ')[0]+' es el nuevo cacique.').catch(function(){}); sheetTribe(tid); },
+  deleteTribe: function(el){ var tid = el.dataset.id, t = S.tribes[tid];
+    if(!isCacique(S.uid, tid)) return;
+    var typed = prompt('Se borran la tribu, sus lugares y sus salidas para todos. Para confirmar, escribí el nombre: '+t.nombre);
+    if(typed === null) return;
+    if(typed.trim().toLowerCase() !== t.nombre.toLowerCase()){ toast('El nombre no coincide. No se borró nada.'); return; }
+    act(deleteTribe(tid), 'Borraste '+t.nombre+'.').catch(function(){}); closeSheet(); },
+  leaveTribe: function(el){ var t = S.tribes[el.dataset.id];
+    if(isCacique(S.uid, el.dataset.id) && membersOf(el.dataset.id).length > 1){ toast('Antes de salir, nombrá a otra persona como cacique.'); return; }
+    if(isCacique(S.uid, el.dataset.id)){ A.deleteTribe(el); return; }
+    if(!confirm('¿Salir de '+t.nombre+'?')) return; act(setMine('memberships','tribes',el.dataset.id,undefined), 'Saliste de la tribu.').catch(function(){}); closeSheet(); },
   evaluar: function(el){ var id = el.dataset.id; if(id){ var a = S.antojos[id]; sheetEvaluar({local:a.nombre, antojo:id, tribe:a.tribe}); } else sheetEvaluar(null); },
   evaluarSalida: function(el){ var s = S.salidas[el.dataset.id]; sheetEvaluar({local:s.local, antojo:s.antojo, tribe:s.tribe}); },
   publishReview: function(el){
@@ -1112,7 +1161,7 @@ function buildSeed(){
   var P = {u1:'Martina Castro',u2:'Juan Pérez',u3:'Sol Ríos',u4:'Tomi García',u5:'Caro Benítez',u6:'Nico Álvarez',
     g1:'Lucía Gómez',g2:'Pedro Sosa',g3:'Ana Ferreyra',g4:'Diego Ruiz',g5:'Flor Medina',g6:'Matías Acosta',g7:'Paula Ortiz',g8:'Leo Domínguez',g9:'Vicky Herrera',g10:'Santi Molina',g11:'Juli Navarro',g12:'Bruno Rey'};
   var tribes = {
-    amigos:{nombre:'Los del ramen', sigla:'LR', descripcion:'El grupo de amigos que siempre termina hablando de dónde comer.', codigo:'RAMEN1', creador:'u1', createdAt:'2026-11-01T12:00:00Z'},
+    amigos:{nombre:'Los del ramen', sigla:'LR', descripcion:'El grupo de amigos que siempre termina hablando de dónde comer.', codigo:'RAMEN1', creador:'local', createdAt:'2026-11-01T12:00:00Z'},
     laburo:{nombre:'Compañeros de trabajo', sigla:'CT', descripcion:'Almuerzos y afters del equipo.', codigo:'LABU22', creador:'u4', createdAt:'2026-11-01T12:00:00Z'}
   };
   var A_ = [
@@ -1163,7 +1212,7 @@ function buildSeed(){
   return {data:{tribes:tribes, antojos:antojos, salidas:salidas, memberships:memberships, votes:votes, asist:asist, reviews:reviews, degus:degus, inscripciones:inscripciones}, profiles:profiles};
 }
 function localDb(seed){
-  var KEY = 'tribu-db-v7', data = null;
+  var KEY = 'tribu-db-v8', data = null;
   try{ data = JSON.parse(load(KEY) || 'null'); }catch(e){ data = null; }
   if(!data){ data = seed.data; store(KEY, JSON.stringify(data)); }
   COLS.forEach(function(c){ data[c] = data[c] || {}; });
@@ -1178,7 +1227,8 @@ function localDb(seed){
     add:function(o){ var id = 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); data[col][id] = o; save(); emit(col); return Promise.resolve({id:id}); },
     doc:function(id){ return {
       set:function(o){ data[col][id] = o; save(); emit(col); return Promise.resolve(); },
-      update:function(o){ data[col][id] = merge(data[col][id] || {}, o); save(); emit(col); return Promise.resolve(); }
+      update:function(o){ data[col][id] = merge(data[col][id] || {}, o); save(); emit(col); return Promise.resolve(); },
+      remove:function(){ delete data[col][id]; save(); emit(col); return Promise.resolve(); }
     }; }
   }; }};
 }
