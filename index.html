@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>tribu</title>
-<meta name="description" content="tribu: organizá salidas con tu grupo y sumate a degustaciones.">
+<meta name="description" content="tribu: organizá salidas con tu grupo y sumate a experiencias.">
 <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F0F0F" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -159,7 +159,12 @@ input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;min-wi
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--on-ink);padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:4000;max-width:min(90vw,440px)}
 .code{font-family:ui-monospace,Menlo,monospace;font-size:15px;background:var(--surface);border:1px solid var(--line2);padding:12px;border-radius:10px;user-select:all;letter-spacing:.06em;text-align:center}
 .hint{font-size:13px;color:var(--fg3);margin:0}
-.degu-top{display:flex;align-items:center;gap:10px}
+.cats{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding:4px 0 14px;margin:0 -20px;padding-left:20px;padding-right:20px}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;width:64px;font-size:13px;font-weight:600;color:var(--fg2)}
+.cat .ic{width:56px;height:56px;border-radius:18px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--fg)}
+.cat[aria-pressed="true"] .ic{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+.cat[aria-pressed="true"]{color:var(--fg)}
 .price{font-size:20px;font-weight:700}
 @media (max-width:380px){
   header.top{padding:10px 16px 2px}
@@ -194,7 +199,7 @@ input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;min-wi
   <nav class="tabs" aria-label="Navegación principal">
     <button type="button" data-tab="salidas"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Salidas</button>
     <button type="button" data-tab="lugares"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Lugares</button>
-    <button type="button" data-tab="degus"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8l-1 7a3 3 0 0 1-6 0L8 2Z"/><path d="M12 12v8M8 22h8"/></svg>Degustaciones</button>
+    <button type="button" data-tab="degus"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9L12 3Z"/></svg>Experiencias</button>
     <button type="button" data-tab="perfil"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Perfil</button>
   </nav>
 </div>
@@ -310,7 +315,7 @@ function pendingSalidas(){
   });
 }
 
-/* ---------- degustaciones ---------- */
+/* ---------- experiencias ---------- */
 function inscriptos(did){ return Object.keys(S.inscripciones).filter(function(u){ var x = S.inscripciones[u]; return x && x.degus && x.degus[did]; }); }
 function dinfo(did){
   var d = S.degus[did], n = inscriptos(did).length, me = inscriptos(did).indexOf(S.uid) >= 0;
@@ -386,13 +391,13 @@ function chips(list, cur, actName, allLabel){
 function render(){
   renderLogin();
   document.querySelectorAll('nav.tabs button').forEach(function(b){ if(b.dataset.tab === S.tab) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
-  document.getElementById('banner').innerHTML = !S.hideDemo ? '<p class="banner">Versión demo: los datos se guardan solo en este dispositivo y la gente es ficticia. <button type="button" data-act="hideDemo" style="text-decoration:underline;font-weight:600">Entendido</button></p>' : '';
+
   var tid = activeTribe(), t = tid && tribe(tid);
   if(tid && S.active !== tid && S.ready){ S.active = tid; store('tf-active', tid); }
   var sub = (S.tab === 'salidas' || S.tab === 'lugares')
     ? (t ? '<button type="button" class="tribe-pick" data-act="pickTribe" aria-label="Tribu activa: '+esc(t.nombre)+'. Cambiar o administrar"><span>'+esc(t.nombre)+'</span>'+ICON.chev+'</button>'
          : '<button type="button" class="tribe-pick" data-act="pickTribe"><span>Elegí tu tribu</span>'+ICON.chev+'</button>')
-    : '<span class="page-t">'+({degus:'Degustaciones',perfil:'Perfil'}[S.tab])+'</span>';
+    : '<span class="page-t">'+({degus:'Experiencias',perfil:'Perfil'}[S.tab])+'</span>';
   document.getElementById('top').innerHTML = '<div class="brandbar">'+logo()+'</div>'+sub;
 
   var showMap = S.tab === 'lugares' && S.lugMode === 'mapa' && HAS_MAP && tid && S.ready && antojosOf(tid).length > 0;
@@ -420,15 +425,14 @@ function viewSalidas(tid){
   var up = all.filter(function(i){ return i.upcoming; });
   var open = up.filter(function(i){ return !i.conf; }).sort(function(a,b){ return (a.first.fecha+a.first.hora).localeCompare(b.first.fecha+b.first.hora); });
   var conf = up.filter(function(i){ return i.conf; }).sort(function(a,b){ return (a.conf.fecha+a.conf.hora).localeCompare(b.conf.fecha+b.conf.hora); });
-  if(!up.length) return '<div class="empty"><p>Tu tribu no tiene salidas en marcha. Elegí un lugar y proponé fechas.</p><button type="button" class="btn ink" data-act="tab" data-v="lugares">Ver lugares</button></div>';
+  if(!up.length) return '<div class="empty"><p>No hay salidas en marcha. Elegí un lugar y proponé fechas.</p><button type="button" class="btn ink" data-act="tab" data-v="lugares">Ver lugares</button></div>';
   var html = '';
   if(open.length){
     html += '<p class="section-t">Por confirmar</p><div class="list">' + open.map(function(i){
       var mine = !!marks(S.uid, i.id);
-      var when = i.future.length > 1 ? i.future.length+' fechas posibles' : fmtShort(i.future[0]);
-      return '<div class="item"><span class="time" style="color:var(--fg3)" aria-hidden="true">'+(i.future.length > 1 ? i.future.length+'<br><span style="font-size:11px;font-weight:600">fechas</span>' : esc(i.future[0].hora))+'</span>'+
-        '<button type="button" class="item-main" data-act="openSalida" data-id="'+esc(i.id)+'"><span class="item-t">'+esc(i.s.local)+'</span><span class="meta">'+esc(when)+'</span>'+
-        '<span class="meta"><b>'+(i.faltan === 1 ? 'Falta 1' : 'Faltan '+i.faltan)+'</b> para confirmar · mínimo '+i.min+'</span></button>'+
+      var when = i.future.length > 1 ? i.future.length+' fechas' : fmtShort(i.future[0]);
+      return '<div class="item"><button type="button" class="item-main" data-act="openSalida" data-id="'+esc(i.id)+'"><span class="item-t">'+esc(i.s.local)+'</span>'+
+        '<span class="meta">'+esc(when)+' · '+(i.faltan === 1 ? 'falta 1' : 'faltan '+i.faltan)+'</span></button>'+
         (mine ? '<button type="button" class="mini ok" data-act="openSalida" data-id="'+esc(i.id)+'">'+ICON.check+'Anotado</button>' : '<button type="button" class="mini ink" data-act="openSalida" data-id="'+esc(i.id)+'">Anotarme</button>')+'</div>';
     }).join('') + '</div>';
   }
@@ -439,7 +443,7 @@ function viewSalidas(tid){
     var btn = isIn ? '<button type="button" class="mini ok" data-act="openSalida" data-id="'+esc(i.id)+'">'+ICON.check+'Vas</button>'
       : i.st === 'llena' ? '<span class="meta">Llena</span>' : '<button type="button" class="mini ink" data-act="join" data-id="'+esc(i.id)+'">Sumarme</button>';
     return head + '<div class="item"><span class="time">'+esc(i.conf.hora)+'</span><button type="button" class="item-main" data-act="openSalida" data-id="'+esc(i.id)+'"><span class="item-t">'+esc(i.s.local)+'</span>'+
-      '<span class="meta"><span class="avs">'+i.conf.people.slice(0,4).map(function(u){ return av(u); }).join('')+'</span>'+i.conf.n+' de '+i.max+' · confirmada</span></button>'+btn+'</div>';
+      '<span class="meta"><span class="avs">'+i.conf.people.slice(0,4).map(function(u){ return av(u); }).join('')+'</span>'+i.conf.n+' de '+i.max+'</span></button>'+btn+'</div>';
   }).join('');
   return html;
 }
@@ -460,22 +464,32 @@ function viewLugares(tid){
   }).join('') + '</div>';
 }
 
+var CAT_ORDER = ['Vinos','Café','Té','Vermut','Ramen','Pastelería'];
+var CAT_ICON = {
+  'Vinos':'<path d="M8 2h8l-1 7a3 3 0 0 1-6 0L8 2Z"/><path d="M12 12v8M8 22h8"/>',
+  'Café':'<path d="M4 9h13v4a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V9Z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 2v3M12 2v3"/>',
+  'Té':'<path d="M5 20c0-8 5-14 15-15-1 10-7 15-15 15Z"/><path d="M5 20l8-8"/>',
+  'Vermut':'<path d="M5 4h14l-7 8-7-8Z"/><path d="M12 12v8M8 20h8"/>',
+  'Ramen':'<path d="M3 11h18a9 9 0 0 1-18 0Z"/><path d="M15 3l-3 8M19 3l-3 8"/>',
+  'Pastelería':'<path d="M4 14a8 6 0 0 1 16 0Z"/><path d="M6 14l1.2 6h9.6L18 14"/>'
+};
+function catIcon(c){ return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(CAT_ICON[c]||'<circle cx="12" cy="12" r="8"/>')+'</svg>'; }
 function viewDegus(){
-  var ids = Object.keys(S.degus).map(dinfo).filter(function(x){ return x.st !== 'pasada'; });
-  var tipos = {}; ids.forEach(function(x){ tipos[x.d.tipo] = 1; });
-  var list = ids.filter(function(x){ return !S.dtipo || x.d.tipo === S.dtipo; }).sort(function(a,b){ return (a.d.fecha+a.d.hora).localeCompare(b.d.fecha+b.d.hora); });
-  var html = '<p class="hint" style="margin:0 0 10px">Experiencias armadas por locales y anfitriones. Te anotás solo o con tu tribu.</p>';
-  html += '<div class="chips-row">'+chips(Object.keys(tipos).sort(), S.dtipo, 'dtipo', 'Todas')+'</div>';
-  if(!list.length) return html + '<div class="empty"><p>No hay degustaciones de este tipo por ahora.</p></div>';
+  var all = Object.keys(S.degus).map(dinfo).filter(function(x){ return x.st !== 'pasada'; });
+  var have = {}; all.forEach(function(x){ have[x.d.tipo] = 1; });
+  var cats = CAT_ORDER.filter(function(c){ return have[c]; }).concat(Object.keys(have).filter(function(c){ return CAT_ORDER.indexOf(c) < 0; }));
+  var list = all.filter(function(x){ return !S.dtipo || x.d.tipo === S.dtipo; }).sort(function(a,b){ return (a.d.fecha+a.d.hora).localeCompare(b.d.fecha+b.d.hora); });
+  var html = '<div class="cats" role="group" aria-label="Categorías">'+cats.map(function(c){
+    return '<button type="button" class="cat" data-act="dtipo" data-v="'+esc(c)+'" aria-pressed="'+(S.dtipo===c)+'"><span class="ic">'+catIcon(c)+'</span>'+esc(c)+'</button>'; }).join('')+'</div>';
+  if(S.dtipo) html += '<div style="display:flex;justify-content:space-between;align-items:center"><span class="section-t" style="margin:0">'+esc(S.dtipo)+'</span><button type="button" class="mini" data-act="dtipo" data-v="">Ver todas</button></div>';
+  if(!list.length) return html + '<div class="empty"><p>No hay experiencias de esta categoría por ahora.</p></div>';
   return html + '<div class="list">' + list.map(function(x){
-    var d = x.d, pct = Math.min(100, Math.round(x.n / d.cupo * 100));
-    var btn = x.me ? '<button type="button" class="mini ok" data-act="openDegu" data-id="'+esc(x.id)+'">'+ICON.check+'Anotado</button>'
-      : x.st === 'completa' ? '<span class="meta">Completa</span>' : '<button type="button" class="mini ink" data-act="openDegu" data-id="'+esc(x.id)+'">Ver</button>';
-    return '<div class="item" style="align-items:flex-start"><div class="date" aria-hidden="true"><b>'+dObj(d.fecha).getDate()+'</b><span>'+esc(monShort(d.fecha))+'</span></div>'+
-      '<button type="button" class="item-main" data-act="openDegu" data-id="'+esc(x.id)+'"><span class="meta"><span class="tag">'+esc(d.tipo)+'</span></span><span class="item-t">'+esc(d.titulo)+'</span>'+
-      '<span class="meta">'+esc(d.lugar)+' · '+esc(d.hora)+' · '+money(d.precio)+'</span>'+
-      '<span class="bar" style="margin-top:6px" aria-hidden="true"><i style="width:'+pct+'%"></i></span>'+
-      '<span class="meta">'+x.n+' de '+d.cupo+' lugares'+(x.st === 'abierta' ? ' · '+(x.faltan===1?'falta 1':'faltan '+x.faltan)+' para que se haga' : '')+'</span></button>'+btn+'</div>';
+    var d = x.d, left = d.cupo - x.n;
+    var btn = x.me ? '<button type="button" class="mini ok" data-act="openDegu" data-id="'+esc(x.id)+'">'+ICON.check+'Vas</button>'
+      : x.st === 'completa' ? '<span class="meta">Completa</span>' : '<span class="num">'+money(d.precio)+'</span>';
+    return '<div class="item"><div class="date" aria-hidden="true"><b>'+dObj(d.fecha).getDate()+'</b><span>'+esc(monShort(d.fecha))+'</span></div>'+
+      '<button type="button" class="item-main" data-act="openDegu" data-id="'+esc(x.id)+'"><span class="item-t">'+esc(d.titulo)+'</span>'+
+      '<span class="meta">'+esc(d.lugar)+' · '+esc(d.hora)+(x.st === 'completa' ? '' : ' · '+(left===1?'queda 1 lugar':'quedan '+left+' lugares'))+'</span></button>'+btn+'</div>';
   }).join('') + '</div>';
 }
 
@@ -484,7 +498,7 @@ function viewPerfil(tid){
   mine.forEach(function(r){ places[r.localKey]=1; });
   var degs = Object.keys(S.degus).filter(function(d){ return inscriptos(d).indexOf(S.uid) >= 0; }).length;
   var html = '<div class="item" style="border:0;padding-top:4px">'+av(S.uid,'lg')+'<div style="flex:1"><div class="item-t" style="font-size:20px">'+esc(nm(S.uid))+'</div><div class="meta">'+levelOf(total)+'</div></div></div>';
-  html += '<div class="stats"><div><b>'+fmtN(pointsOf(S.uid,m))+'</b><span>pts del mes</span></div><div><b>'+Object.keys(places).length+'</b><span>lugares</span></div><div><b>'+degs+'</b><span>degustaciones</span></div></div>';
+  html += '<div class="stats"><div><b>'+fmtN(pointsOf(S.uid,m))+'</b><span>pts del mes</span></div><div><b>'+Object.keys(places).length+'</b><span>lugares</span></div><div><b>'+degs+'</b><span>experiencias</span></div></div>';
   var pend = pendingSalidas();
   if(pend.length){ var s = S.salidas[pend[0]];
     html += '<div class="callout" style="margin-top:18px"><div style="flex:1"><div style="font-weight:600">¿Cómo estuvo '+esc(s.local)+'?</div><div class="meta">Tu reseña suma 50 puntos.</div></div><button type="button" class="mini ink" data-act="evaluarSalida" data-id="'+esc(pend[0])+'">Evaluar</button></div>'; }
@@ -500,6 +514,7 @@ function viewPerfil(tid){
     html += '<p class="hint" style="margin-top:12px">Puntos de este mes en '+esc(tribe(tid).nombre)+'. Cada reseña suma 50, una por lugar por mes.</p>';
   }
   html += '<button type="button" class="btn quiet" style="margin-top:20px" data-act="logout">Cerrar sesión</button>';
+  html += '<p class="hint" style="text-align:center">Versión demo: los datos quedan en este dispositivo y la gente es ficticia.</p>';
   return html;
 }
 
@@ -523,7 +538,7 @@ function doLogin(){
   var name = ((document.getElementById('lgName')||{}).value || '').trim();
   if(!name){ toast('Escribí tu nombre para entrar.'); document.getElementById('lgName').focus(); return; }
   store('tf-name', name); S.meName = name; store('tf-login', '1'); S.tab = 'salidas'; render();
-  toast('¡Hola, '+name.split(' ')[0]+'!');
+  toast('¡Hola, '+name.split(' ')[0]+'! Es una demo: los datos quedan en tu celular.');
 }
 
 /* ---------- sheets ---------- */
@@ -603,7 +618,7 @@ function sheetDegu(did){
   live(esc(S.degus[did].titulo), function(b){
     var x = dinfo(did), d = x.d, tid = activeTribe(), pct = Math.min(100, Math.round(x.n / d.cupo * 100));
     var friends = tid ? inscriptos(did).filter(function(u){ return u !== S.uid && isMember(u, tid); }) : [];
-    var h = '<p class="meta" style="margin:-10px 0 0"><span class="tag">'+esc(d.tipo)+'</span> · '+esc(fmtDate(d.fecha))+', '+esc(d.hora)+'</p>'+
+    var h = '<p class="meta" style="margin:-10px 0 0">'+esc(d.tipo)+' · '+esc(fmtDate(d.fecha))+', '+esc(d.hora)+'</p>'+
       '<p style="margin:0;color:var(--fg2)">'+esc(d.descripcion)+'</p>'+
       '<div class="list"><div class="item"><div class="item-main"><span class="meta">Dónde</span><span class="item-t">'+esc(d.lugar)+'</span><span class="meta">'+esc(d.barrio)+'</span></div></div>'+
       '<div class="item"><div class="item-main"><span class="meta">Anfitrión</span><span class="item-t">'+esc(d.anfitrion)+'</span></div></div>'+
@@ -615,7 +630,7 @@ function sheetDegu(did){
     if(x.me) h += '<button type="button" class="btn ok" data-act="desinscribir" data-id="'+esc(did)+'">'+ICON.check+'Anotado · tocá para bajarte</button>';
     else if(x.st === 'completa') h += '<button type="button" class="btn" disabled>Completa</button>';
     else h += '<button type="button" class="btn ink" data-act="inscribir" data-id="'+esc(did)+'">Anotarme · '+money(d.precio)+'</button>';
-    if(tid && x.st !== 'completa') h += '<button type="button" class="btn" data-act="deguTribu" data-id="'+esc(did)+'">Proponérsela a '+esc(tribe(tid).nombre)+'</button>';
+    if(tid && x.st !== 'completa') h += '<button type="button" class="btn quiet" data-act="deguTribu" data-id="'+esc(did)+'">Proponérsela a '+esc(tribe(tid).nombre)+'</button>';
     h += '</div><p class="hint" style="text-align:center">El pago es una simulación: no se cobra nada.</p>';
     b.innerHTML = h;
   });
@@ -647,7 +662,7 @@ function sheetNewSalida(aid, preset){
   var a = aid ? S.antojos[aid] : null, p = preset || {};
   openSheet('Proponer salida', '<p class="meta" style="margin:-10px 0 0">'+esc(a ? a.nombre : p.local)+'</p>'+
     '<div class="field"><span class="lbl">Fechas posibles</span><div id="optRows" style="display:flex;flex-direction:column;gap:8px">'+optRow(p.fecha || dayStr(1), p.hora || '21:00', false)+'</div>'+
-    (p.fija ? '<p class="hint">La fecha la pone la degustación.</p>' : '<button type="button" class="btn quiet" data-act="addOpt" style="justify-content:flex-start;padding:0">'+ICON.plus+'Agregar otra fecha</button><p class="hint">Cada uno marca las fechas que puede. Se confirma la primera que llegue al mínimo.</p>')+'</div>'+
+    (p.fija ? '<p class="hint">La fecha la pone la experiencia.</p>' : '<button type="button" class="btn quiet" data-act="addOpt" style="justify-content:flex-start;padding:0">'+ICON.plus+'Agregar otra fecha</button><p class="hint">Cada uno marca las fechas que puede. Se confirma la primera que llegue al mínimo.</p>')+'</div>'+
     '<div style="display:flex;gap:8px"><div class="field" style="flex:1"><label for="sMin">Mínimo de personas</label><input id="sMin" type="number" inputmode="numeric" class="input" min="2" max="20" value="'+(p.min||4)+'"></div>'+
     '<div class="field" style="flex:1"><label for="sMax">Máximo</label><input id="sMax" type="number" inputmode="numeric" class="input" min="2" max="30" value="'+(p.max||6)+'"></div></div>'+
     '<button type="button" class="btn ink" data-act="saveSalida" data-id="'+esc(aid||'')+'" data-degu="'+esc(p.degu||'')+'">Publicar en la tribu</button>',
@@ -761,8 +776,8 @@ var A = {
     if(inscriptos(did).length >= d.cupo){ toast('Se completó el cupo.'); return; }
     var was = dinfo(did).st;
     act(setMine('inscripciones','degus',did,new Date().toISOString())).then(function(){
-      toast(was === 'abierta' && dinfo(did).st !== 'abierta' ? '¡Anotado! Con vos se llegó al mínimo y la degustación se confirmó.' : '¡Anotado!'); }).catch(function(){}).then(refreshSheet); },
-  desinscribir: function(el){ act(setMine('inscripciones','degus',el.dataset.id,undefined), 'Te bajaste de la degustación.').catch(function(){}).then(refreshSheet); },
+      toast(was === 'abierta' && dinfo(did).st !== 'abierta' ? '¡Anotado! Con vos se llegó al mínimo y la experiencia se confirmó.' : '¡Anotado!'); }).catch(function(){}).then(refreshSheet); },
+  desinscribir: function(el){ act(setMine('inscripciones','degus',el.dataset.id,undefined), 'Te bajaste de la experiencia.').catch(function(){}).then(refreshSheet); },
   deguTribu: function(el){ var d = S.degus[el.dataset.id], left = d.cupo - inscriptos(el.dataset.id).length;
     sheetNewSalida(null, {local:d.titulo, fecha:d.fecha, hora:d.hora, fija:true, min:2, max:Math.max(2, Math.min(6, left)), degu:el.dataset.id}); },
   saveTribe: function(){
@@ -856,7 +871,7 @@ function buildSeed(){
     D('d-vermut','Vermut','Vermut de autor y picada','Bar Sifón','Villa Crespo','Bartender invitado',2,'19:00',18000,14,6,'Cinco vermuts artesanales, cómo se arman y con qué acompañarlos.','5 copas chicas y picada',11),
     D('d-ramen','Ramen','La ruta del tonkotsu','Cocina Kaze','Villa Crespo','Chef del local',3,'20:00',28000,10,6,'Cuatro caldos, cuatro estilos de fideo. El chef cuenta cómo se hace cada uno.','4 medios bowls y una bebida',7),
     D('d-pastel','Pastelería','Laminados: medialuna, croissant y danesa','Obrador Miga','Colegiales','Pastelera del obrador',4,'10:30',20000,10,5,'Probás y comparás los tres laminados clásicos, recién horneados.','3 piezas, café y una caja para llevar',9),
-    D('d-vino','Vino','Malbec de altura','Cepa Urbana','Palermo','Sommelier',5,'20:30',35000,12,8,'Malbecs de distintas alturas de Mendoza y Salta, con lo que cambia en cada copa.','5 copas y tabla de quesos',5),
+    D('d-vino','Vinos','Malbec de altura','Cepa Urbana','Palermo','Sommelier',5,'20:30',35000,12,8,'Malbecs de distintas alturas de Mendoza y Salta, con lo que cambia en cada copa.','5 copas y tabla de quesos',5),
     D('d-te','Té','Tés en hebras de Asia','Casa Hoja','Palermo','Especialista en té',6,'17:00',15000,8,4,'Verde, blanco, oolong y negro: cómo se preparan y a qué sabe cada uno.','4 tés y pastelería',2)
   ];
   var degus = {}, inscripciones = {}, pool = ['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','g11','g12','u5','u6'];
@@ -867,7 +882,7 @@ function buildSeed(){
   return {data:{tribes:tribes, antojos:antojos, salidas:salidas, memberships:memberships, votes:votes, asist:asist, reviews:reviews, degus:degus, inscripciones:inscripciones}, profiles:profiles};
 }
 function localDb(seed){
-  var KEY = 'tribu-db-v4', data = null;
+  var KEY = 'tribu-db-v5', data = null;
   try{ data = JSON.parse(load(KEY) || 'null'); }catch(e){ data = null; }
   if(!data){ data = seed.data; store(KEY, JSON.stringify(data)); }
   COLS.forEach(function(c){ data[c] = data[c] || {}; });
