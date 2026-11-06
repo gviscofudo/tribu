@@ -123,6 +123,43 @@ nav.tabs button[aria-current="page"]{color:var(--fg);font-weight:700}
 .num{font-size:15px;font-weight:700;flex-shrink:0}
 .pos{width:20px;font-weight:700;color:var(--fg3);flex-shrink:0}
 
+.bell{position:relative;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:var(--fg)}
+.badge{position:absolute;top:5px;right:4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--cardon);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.notif{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--line);text-align:left;width:100%}
+.notif .ndot{width:8px;height:8px;border-radius:8px;background:var(--cardon);margin-top:8px;flex-shrink:0}
+.notif .ndot.read{background:transparent}
+.desc{font-size:14px;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.why{font-size:12px;font-weight:600;color:var(--accent)}
+.place{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.place .pm{height:150px}
+.place .pi{padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.ichips{display:flex;flex-wrap:wrap;gap:6px}
+.ichip{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+/* onboarding */
+#onb{position:fixed;inset:0;z-index:3100;background:var(--bg);overflow-y:auto;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.onb-in{max-width:420px;margin:0 auto;min-height:100%;padding:18px 24px 28px;display:flex;flex-direction:column;gap:18px}
+.onb-top{display:flex;align-items:center;gap:12px}
+.prog{flex:1;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--cardon);transition:width .25s}
+.onb-q{font-size:28px;font-weight:700;line-height:1.15;letter-spacing:-.01em;margin:8px 0 0}
+.onb-sub{margin:-8px 0 0;color:var(--fg3)}
+.deck{position:relative;height:340px;margin:6px 0}
+.card{position:absolute;inset:0;border-radius:24px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;touch-action:pan-y;user-select:none;transition:transform .2s ease}
+.card.back{transform:scale(.95) translateY(12px);opacity:.6}
+.card .big{width:96px;height:96px;border-radius:30px;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.card h2{margin:0;font-size:30px;font-weight:700}
+.card p{margin:0;color:var(--fg2);max-width:26ch}
+.card .stamp{position:absolute;top:22px;font-weight:800;font-size:18px;padding:4px 10px;border-radius:8px;border:3px solid;opacity:0}
+.card .stamp.yes{left:22px;color:var(--cardon);border-color:var(--cardon);transform:rotate(-12deg)}
+.card .stamp.no{right:22px;color:var(--fg3);border-color:var(--fg3);transform:rotate(12deg)}
+.swipe-btns{display:flex;justify-content:center;gap:28px}
+.round{width:68px;height:68px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.round.yes{color:var(--cardon)}
+.opts{display:flex;flex-wrap:wrap;gap:10px}
+.opt{min-height:48px;padding:0 18px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);font-weight:600;font-size:15px}
+.opt[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+.opts.col{flex-direction:column}
+.opts.col .opt{border-radius:14px;text-align:left;padding:14px 16px}
 #login{position:fixed;inset:0;z-index:3000;background:var(--bg);overflow-y:auto;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
 .login-in{max-width:400px;margin:0 auto;min-height:100%;padding:56px 24px 32px;display:flex;flex-direction:column;gap:14px}
 .login-in .logo{align-self:center;margin-bottom:6px}
@@ -204,6 +241,7 @@ input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;min-wi
   </nav>
 </div>
 <div id="login" hidden></div>
+<div id="onb" hidden></div>
 <div id="sheetRoot"></div>
 <div id="toastRoot" aria-live="polite"></div>
 
@@ -323,6 +361,61 @@ function dinfo(did){
   return {id:did, d:d, n:n, me:me, st:st, faltan:Math.max(0, d.min - n)};
 }
 
+/* ---------- perfil de intereses ---------- */
+var INTERESES = [
+  {k:'Vinos', d:'Catas, bodegas y maridajes.'},
+  {k:'Café', d:'Especialidad, tostadores y filtrados.'},
+  {k:'Té', d:'Hebras, ceremonias y meriendas.'},
+  {k:'Vermut', d:'Aperitivo, sifón y picada.'},
+  {k:'Ramen', d:'Caldos, fideos y cocina japonesa.'},
+  {k:'Pastelería', d:'Laminados, tortas y panaderías.'},
+  {k:'Parrilla', d:'Asado, bodegones y cortes.'},
+  {k:'Cerveza', d:'Artesanal, IPAs y cervecerías.'}
+];
+function profile(){ try{ return JSON.parse(load('tf-profile') || 'null'); }catch(e){ return null; } }
+var SLOTS = {fm:'Mañanas de finde', ta:'Tardes', ns:'Noches de semana', nf:'Noches de finde'};
+function slotOf(fecha, hora){ var wd = dObj(fecha).getDay(), h = parseInt(hora,10), finde = wd === 0 || wd === 6;
+  if(h < 13) return finde ? 'fm' : 'ta'; if(h < 19) return 'ta'; return (wd === 5 || wd === 6) ? 'nf' : 'ns'; }
+function suggest(x){
+  var p = profile(); if(!p) return null;
+  var d = x.d, sc = 0, why = '';
+  var alc = d.tipo === 'Vinos' || d.tipo === 'Vermut' || d.tipo === 'Cerveza';
+  if(alc && (p.restr||[]).indexOf('Sin alcohol') >= 0) return null;
+  if((p.likes||[]).indexOf(d.tipo) >= 0){ sc += 3; why = 'Porque te gusta '+(d.tipo === 'Vinos' ? 'el vino' : d.tipo === 'Pastelería' ? 'la pastelería' : d.tipo === 'Té' ? 'el té' : d.tipo === 'Café' ? 'el café' : d.tipo === 'Vermut' ? 'el vermut' : d.tipo === 'Ramen' ? 'el ramen' : d.tipo.toLowerCase()); }
+  if(p.budget && d.precio <= p.budget){ sc += 1; why = why || 'Dentro de tu presupuesto'; }
+  if((p.slots||[]).indexOf(slotOf(d.fecha, d.hora)) >= 0){ sc += 1; why = why || 'En tu horario: '+SLOTS[slotOf(d.fecha, d.hora)].toLowerCase(); }
+  if((p.barrios||[]).indexOf(d.barrio) >= 0){ sc += 1; why = why || 'Cerca, en '+d.barrio; }
+  return sc >= 3 ? {score:sc, why:why} : null;
+}
+function readSet(){ try{ return JSON.parse(load('tf-read') || '{}'); }catch(e){ return {}; } }
+function notifs(){
+  var out = [], t = todayStr(), tm = dayStr(1), mine = myTribes();
+  Object.keys(S.salidas).forEach(function(sid){
+    var i = info(sid); if(mine.indexOf(i.s.tribe) < 0 || !i.upcoming) return;
+    var tn = tribe(i.s.tribe).nombre, my = marks(S.uid, sid);
+    if(i.conf){
+      var isIn = i.conf.people.indexOf(S.uid) >= 0;
+      if(isIn && (i.conf.fecha === t || i.conf.fecha === tm)) out.push({id:'rec-'+sid+i.conf.fecha, k:0, act:'openSalida', ref:sid, title:(i.conf.fecha === t ? 'Hoy' : 'Mañana')+': '+i.s.local+' a las '+i.conf.hora, sub:tn});
+      else if(isIn) out.push({id:'conf-'+sid, k:2, act:'openSalida', ref:sid, title:'Se confirmó '+i.s.local, sub:fmtShort(i.conf)+' · '+tn});
+      else if(i.st !== 'llena') out.push({id:'confx-'+sid, k:2, act:'openSalida', ref:sid, title:'Se confirmó '+i.s.local+'. ¿Te sumás?', sub:fmtShort(i.conf)+' · quedan '+(i.max - i.conf.n)+' lugares'});
+    } else if(!my && i.s.organizador !== S.uid){
+      out.push({id:'new-'+sid, k:1, act:'openSalida', ref:sid, title:cap(firstName(i.s.organizador))+' propuso '+i.s.local, sub:(i.future.length > 1 ? i.future.length+' fechas posibles' : fmtShort(i.future[0]))+' · '+tn});
+    } else if(my && i.faltan === 1){
+      out.push({id:'falta-'+sid, k:1, act:'openSalida', ref:sid, title:'A '+i.s.local+' le falta 1 persona', sub:'Invitá a alguien de '+tn});
+    }
+  });
+  pendingSalidas().forEach(function(sid){ out.push({id:'rev-'+sid, k:1, act:'evaluarSalida', ref:sid, title:'¿Cómo estuvo '+S.salidas[sid].local+'?', sub:'Tu reseña suma 50 puntos'}); });
+  Object.keys(S.degus).map(dinfo).forEach(function(x){
+    if(x.st === 'pasada') return;
+    if(x.me && (x.d.fecha === t || x.d.fecha === tm)){ out.push({id:'drec-'+x.id, k:0, act:'openDegu', ref:x.id, title:(x.d.fecha === t ? 'Hoy' : 'Mañana')+': '+x.d.titulo+' a las '+x.d.hora, sub:x.d.lugar}); return; }
+    if(x.me) return;
+    var friends = inscriptos(x.id).filter(function(u){ return u !== S.uid && mine.some(function(tid){ return isMember(u, tid); }); });
+    if(friends.length) out.push({id:'df-'+x.id+'-'+friends.length, k:2, act:'openDegu', ref:x.id, title:cap(firstName(friends[0]))+(friends.length > 1 ? ' y '+(friends.length-1)+' más se anotaron' : ' se anotó')+' a '+x.d.titulo, sub:x.d.tipo+' · '+fmtShort(x.d)});
+    else { var sg = suggest(x); if(sg && x.st !== 'completa') out.push({id:'ds-'+x.id, k:3, act:'openDegu', ref:x.id, title:'Para vos: '+x.d.titulo, sub:sg.why}); }
+  });
+  return out.sort(function(a,b){ return a.k - b.k; });
+}
+
 /* ---------- escritura ---------- */
 var queues = {};
 function serial(key, fn){ var p = (queues[key] || Promise.resolve()).then(fn, fn); queues[key] = p.catch(function(){}); return p; }
@@ -389,7 +482,7 @@ function chips(list, cur, actName, allLabel){
     list.map(function(c){ return '<button type="button" class="chip" data-act="'+actName+'" data-v="'+esc(c)+'" aria-pressed="'+(cur===c)+'">'+esc(c)+'</button>'; }).join('');
 }
 function render(){
-  renderLogin();
+  renderLogin(); renderOnb();
   document.querySelectorAll('nav.tabs button').forEach(function(b){ if(b.dataset.tab === S.tab) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
 
   var tid = activeTribe(), t = tid && tribe(tid);
@@ -398,7 +491,8 @@ function render(){
     ? (t ? '<button type="button" class="tribe-pick" data-act="pickTribe" aria-label="Tribu activa: '+esc(t.nombre)+'. Cambiar o administrar"><span>'+esc(t.nombre)+'</span>'+ICON.chev+'</button>'
          : '<button type="button" class="tribe-pick" data-act="pickTribe"><span>Elegí tu tribu</span>'+ICON.chev+'</button>')
     : '<span class="page-t">'+({degus:'Experiencias',perfil:'Perfil'}[S.tab])+'</span>';
-  document.getElementById('top').innerHTML = '<div class="brandbar">'+logo()+'</div>'+sub;
+  var unread = S.ready ? notifs().filter(function(n){ return !readSet()[n.id]; }).length : 0;
+  document.getElementById('top').innerHTML = '<div class="brandbar">'+logo()+'<button type="button" class="bell" data-act="openNotifs" aria-label="Notificaciones'+(unread?', '+unread+' sin leer':'')+'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>'+(unread?'<span class="badge" aria-hidden="true">'+(unread>9?'9+':unread)+'</span>':'')+'</button></div>'+sub;
 
   var showMap = S.tab === 'lugares' && S.lugMode === 'mapa' && HAS_MAP && tid && S.ready && antojosOf(tid).length > 0;
   document.getElementById('mapHost').hidden = !showMap;
@@ -474,23 +568,35 @@ var CAT_ICON = {
   'Pastelería':'<path d="M4 14a8 6 0 0 1 16 0Z"/><path d="M6 14l1.2 6h9.6L18 14"/>'
 };
 function catIcon(c){ return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(CAT_ICON[c]||'<circle cx="12" cy="12" r="8"/>')+'</svg>'; }
+function deguRow(x, why){
+  var d = x.d, left = d.cupo - x.n;
+  var btn = x.me ? '<button type="button" class="mini ok" data-act="openDegu" data-id="'+esc(x.id)+'">'+ICON.check+'Vas</button>'
+    : x.st === 'completa' ? '<span class="meta">Completa</span>' : '<span class="num">'+money(d.precio)+'</span>';
+  return '<div class="item" style="align-items:flex-start"><div class="date" aria-hidden="true"><b>'+dObj(d.fecha).getDate()+'</b><span>'+esc(monShort(d.fecha))+'</span></div>'+
+    '<button type="button" class="item-main" data-act="openDegu" data-id="'+esc(x.id)+'">'+(why ? '<span class="why">'+esc(why)+'</span>' : '')+'<span class="item-t">'+esc(d.titulo)+'</span>'+
+    '<span class="desc">'+esc(d.corta)+'</span>'+
+    '<span class="meta">'+esc(d.lugar)+', '+esc(d.barrio)+' · '+esc(d.hora)+(x.st === 'completa' ? '' : ' · '+(left===1?'queda 1 lugar':'quedan '+left+' lugares'))+'</span></button>'+btn+'</div>';
+}
 function viewDegus(){
   var all = Object.keys(S.degus).map(dinfo).filter(function(x){ return x.st !== 'pasada'; });
   var have = {}; all.forEach(function(x){ have[x.d.tipo] = 1; });
   var cats = CAT_ORDER.filter(function(c){ return have[c]; }).concat(Object.keys(have).filter(function(c){ return CAT_ORDER.indexOf(c) < 0; }));
-  var list = all.filter(function(x){ return !S.dtipo || x.d.tipo === S.dtipo; }).sort(function(a,b){ return (a.d.fecha+a.d.hora).localeCompare(b.d.fecha+b.d.hora); });
+  var byDate = function(a,b){ return (a.d.fecha+a.d.hora).localeCompare(b.d.fecha+b.d.hora); };
   var html = '<div class="cats" role="group" aria-label="Categorías">'+cats.map(function(c){
     return '<button type="button" class="cat" data-act="dtipo" data-v="'+esc(c)+'" aria-pressed="'+(S.dtipo===c)+'"><span class="ic">'+catIcon(c)+'</span>'+esc(c)+'</button>'; }).join('')+'</div>';
-  if(S.dtipo) html += '<div style="display:flex;justify-content:space-between;align-items:center"><span class="section-t" style="margin:0">'+esc(S.dtipo)+'</span><button type="button" class="mini" data-act="dtipo" data-v="">Ver todas</button></div>';
-  if(!list.length) return html + '<div class="empty"><p>No hay experiencias de esta categoría por ahora.</p></div>';
-  return html + '<div class="list">' + list.map(function(x){
-    var d = x.d, left = d.cupo - x.n;
-    var btn = x.me ? '<button type="button" class="mini ok" data-act="openDegu" data-id="'+esc(x.id)+'">'+ICON.check+'Vas</button>'
-      : x.st === 'completa' ? '<span class="meta">Completa</span>' : '<span class="num">'+money(d.precio)+'</span>';
-    return '<div class="item"><div class="date" aria-hidden="true"><b>'+dObj(d.fecha).getDate()+'</b><span>'+esc(monShort(d.fecha))+'</span></div>'+
-      '<button type="button" class="item-main" data-act="openDegu" data-id="'+esc(x.id)+'"><span class="item-t">'+esc(d.titulo)+'</span>'+
-      '<span class="meta">'+esc(d.lugar)+' · '+esc(d.hora)+(x.st === 'completa' ? '' : ' · '+(left===1?'queda 1 lugar':'quedan '+left+' lugares'))+'</span></button>'+btn+'</div>';
-  }).join('') + '</div>';
+  if(S.dtipo){
+    var list = all.filter(function(x){ return x.d.tipo === S.dtipo; }).sort(byDate);
+    html += '<div style="display:flex;justify-content:space-between;align-items:center"><span class="section-t" style="margin:0">'+esc(S.dtipo)+'</span><button type="button" class="mini" data-act="dtipo" data-v="">Ver todas</button></div>';
+    return html + (list.length ? '<div class="list">'+list.map(function(x){ return deguRow(x); }).join('')+'</div>' : '<div class="empty"><p>No hay experiencias de esta categoría por ahora.</p></div>');
+  }
+  var sug = all.map(function(x){ return {x:x, s:suggest(x)}; }).filter(function(o){ return o.s && !o.x.me && o.x.st !== 'completa'; })
+    .sort(function(a,b){ return b.s.score - a.s.score || byDate(a.x, b.x); }).slice(0,3);
+  var sugIds = sug.map(function(o){ return o.x.id; });
+  if(sug.length) html += '<p class="section-t">Para vos</p><div class="list">'+sug.map(function(o){ return deguRow(o.x, o.s.why); }).join('')+'</div>';
+  else if(!profile()) html += '<div class="callout" style="margin-bottom:6px"><div style="flex:1"><div style="font-weight:600">Armá tus sugerencias</div><div class="meta">Contanos qué te gusta y te mostramos experiencias para vos.</div></div><button type="button" class="mini ink" data-act="editInterests">Empezar</button></div>';
+  var rest = all.filter(function(x){ return sugIds.indexOf(x.id) < 0; }).sort(byDate);
+  html += '<p class="section-t">'+(sug.length ? 'Todas' : 'Próximas')+'</p><div class="list">'+rest.map(function(x){ return deguRow(x); }).join('')+'</div>';
+  return html;
 }
 
 function viewPerfil(tid){
@@ -499,6 +605,9 @@ function viewPerfil(tid){
   var degs = Object.keys(S.degus).filter(function(d){ return inscriptos(d).indexOf(S.uid) >= 0; }).length;
   var html = '<div class="item" style="border:0;padding-top:4px">'+av(S.uid,'lg')+'<div style="flex:1"><div class="item-t" style="font-size:20px">'+esc(nm(S.uid))+'</div><div class="meta">'+levelOf(total)+'</div></div></div>';
   html += '<div class="stats"><div><b>'+fmtN(pointsOf(S.uid,m))+'</b><span>pts del mes</span></div><div><b>'+Object.keys(places).length+'</b><span>lugares</span></div><div><b>'+degs+'</b><span>experiencias</span></div></div>';
+  var pr = profile();
+  html += '<div style="margin-top:18px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center"><span class="lbl">Tus intereses</span><button type="button" class="mini" data-act="editInterests">'+(pr ? 'Editar' : 'Completar')+'</button></div>'+
+    (pr && pr.likes.length ? '<div class="ichips">'+pr.likes.map(function(k){ return '<span class="ichip">'+esc(k)+'</span>'; }).join('')+(pr.barrios||[]).slice(0,3).map(function(b){ return '<span class="ichip" style="color:var(--fg3)">'+esc(b)+'</span>'; }).join('')+'</div>' : '<p class="hint">Todavía no nos contaste qué te gusta.</p>')+'</div>';
   var pend = pendingSalidas();
   if(pend.length){ var s = S.salidas[pend[0]];
     html += '<div class="callout" style="margin-top:18px"><div style="flex:1"><div style="font-weight:600">¿Cómo estuvo '+esc(s.local)+'?</div><div class="meta">Tu reseña suma 50 puntos.</div></div><button type="button" class="mini ink" data-act="evaluarSalida" data-id="'+esc(pend[0])+'">Evaluar</button></div>'; }
@@ -516,6 +625,71 @@ function viewPerfil(tid){
   html += '<button type="button" class="btn quiet" style="margin-top:20px" data-act="logout">Cerrar sesión</button>';
   html += '<p class="hint" style="text-align:center">Versión demo: los datos quedan en este dispositivo y la gente es ficticia.</p>';
   return html;
+}
+
+/* ---------- onboarding de intereses ---------- */
+var ONB = null;
+var STEPS = [
+  {key:'likes', type:'swipe', q:'¿Qué te tienta?', sub:'Deslizá a la derecha lo que te gusta, a la izquierda lo que no.'},
+  {key:'con', type:'multi', q:'¿Con quién salís más?', opts:['Amigos','Pareja','Trabajo','Familia','Solo/a']},
+  {key:'budget', type:'single', q:'¿Cuánto solés gastar por salida?', opts:[['Hasta $15.000',15000],['De $15.000 a $30.000',30000],['Más de $30.000',100000]]},
+  {key:'slots', type:'multi', q:'¿Cuándo te queda mejor?', opts:[['Mañanas de finde','fm'],['Tardes','ta'],['Noches de semana','ns'],['Noches de finde','nf']]},
+  {key:'barrios', type:'multi', q:'¿Por dónde te movés?', sub:'Elegí los barrios que te quedan cómodos.', opts:['Palermo','Villa Crespo','Chacarita','Colegiales','Belgrano','Recoleta','San Telmo','Caballito']},
+  {key:'restr', type:'multi', q:'¿Algo para tener en cuenta?', opts:['Vegetariano','Vegano','Sin TACC','Sin alcohol','Nada en especial']}
+];
+function startOnb(){ var prev = profile() || {}; ONB = {step:0, card:0, data:{likes:[], nope:[], con:prev.con||[], budget:prev.budget||0, slots:prev.slots||[], barrios:prev.barrios||[], restr:prev.restr||[]}}; drawOnb(); }
+function renderOnb(){
+  var el = document.getElementById('onb');
+  if(!load('tf-login') || (profile() && !ONB)){ el.hidden = true; return; }
+  if(!ONB) startOnb();
+}
+function drawOnb(){
+  var el = document.getElementById('onb'); el.hidden = false;
+  var st = STEPS[ONB.step], D = ONB.data, pct = Math.round((ONB.step) / STEPS.length * 100);
+  var h = '<div class="onb-in" role="dialog" aria-modal="true" aria-labelledby="onbQ"><div class="onb-top">'+
+    (ONB.step ? '<button type="button" class="x" data-act="onbBack" aria-label="Volver">'+'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>'+'</button>' : '<span style="width:40px"></span>')+
+    '<div class="prog" role="progressbar" aria-label="Avance" aria-valuemin="0" aria-valuemax="'+STEPS.length+'" aria-valuenow="'+ONB.step+'"><i style="width:'+pct+'%"></i></div>'+
+    '<button type="button" class="mini" data-act="onbSkip">Saltar</button></div>'+
+    '<h1 class="onb-q" id="onbQ">'+st.q+'</h1>'+(st.sub ? '<p class="onb-sub">'+st.sub+'</p>' : '');
+  if(st.type === 'swipe'){
+    var c = INTERESES[ONB.card], nx = INTERESES[ONB.card+1];
+    if(c){
+      h += '<div class="deck">'+(nx ? '<div class="card back" aria-hidden="true"><span class="big">'+catIcon(nx.k).replace('width="24" height="24"','width="44" height="44"')+'</span><h2>'+esc(nx.k)+'</h2></div>' : '')+
+        '<div class="card" id="swCard" aria-live="polite"><span class="stamp yes">ME GUSTA</span><span class="stamp no">PASO</span><span class="big">'+catIcon(c.k).replace('width="24" height="24"','width="44" height="44"')+'</span><h2>'+esc(c.k)+'</h2><p>'+esc(c.d)+'</p><span class="meta">'+(ONB.card+1)+' de '+INTERESES.length+'</span></div></div>'+
+        '<div class="swipe-btns"><button type="button" class="round" data-act="onbSwipe" data-v="0" aria-label="No me interesa '+esc(c.k)+'"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
+        '<button type="button" class="round yes" data-act="onbSwipe" data-v="1" aria-label="Me gusta '+esc(c.k)+'"><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></button></div>';
+    }
+  } else {
+    h += '<div class="opts'+(st.type === 'single' ? ' col' : '')+'" role="group" aria-labelledby="onbQ">'+st.opts.map(function(o){
+      var label = Array.isArray(o) ? o[0] : o, val = Array.isArray(o) ? o[1] : o;
+      var on = st.type === 'single' ? D[st.key] === val : D[st.key].indexOf(val) >= 0;
+      return '<button type="button" class="opt" data-act="onbOpt" data-v="'+esc(String(val))+'" aria-pressed="'+on+'">'+esc(label)+'</button>'; }).join('')+'</div>'+
+      '<div style="flex:1"></div><button type="button" class="btn ink" data-act="onbNext">'+(ONB.step === STEPS.length-1 ? 'Listo' : 'Seguir')+'</button>';
+  }
+  h += '</div>';
+  el.innerHTML = h;
+  var card = document.getElementById('swCard'); if(card) bindSwipe(card);
+}
+function bindSwipe(card){
+  var x0 = null, dx = 0;
+  card.addEventListener('pointerdown', function(e){ x0 = e.clientX; dx = 0; card.style.transition = 'none'; card.setPointerCapture(e.pointerId); });
+  card.addEventListener('pointermove', function(e){ if(x0 === null) return; dx = e.clientX - x0; card.style.transform = 'translateX('+dx+'px) rotate('+(dx/18)+'deg)';
+    card.querySelector('.stamp.yes').style.opacity = Math.max(0, Math.min(1, dx/90)); card.querySelector('.stamp.no').style.opacity = Math.max(0, Math.min(1, -dx/90)); });
+  var end = function(){ if(x0 === null) return; x0 = null; card.style.transition = '';
+    if(Math.abs(dx) > 90) swipe(dx > 0); else { card.style.transform = ''; card.querySelectorAll('.stamp').forEach(function(s){ s.style.opacity = 0; }); } };
+  card.addEventListener('pointerup', end); card.addEventListener('pointercancel', end);
+}
+function swipe(yes){
+  var c = INTERESES[ONB.card], card = document.getElementById('swCard');
+  (yes ? ONB.data.likes : ONB.data.nope).push(c.k);
+  var next = function(){ ONB.card++; if(ONB.card >= INTERESES.length){ if(!ONB.data.likes.length){ toast('Elegí al menos una cosa que te guste.'); ONB.card = 0; ONB.data.nope = []; } else ONB.step++; } drawOnb(); };
+  if(card && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){ card.style.transform = 'translateX('+(yes?420:-420)+'px) rotate('+(yes?20:-20)+'deg)'; card.querySelector('.stamp.'+(yes?'yes':'no')).style.opacity = 1; setTimeout(next, 180); }
+  else next();
+}
+function finishOnb(){
+  var D = ONB.data, p = {likes:D.likes, con:D.con, budget:D.budget, slots:D.slots, barrios:D.barrios, restr:D.restr.filter(function(r){ return r !== 'Nada en especial'; })};
+  store('tf-profile', JSON.stringify(p)); ONB = null; document.getElementById('onb').hidden = true; document.getElementById('onb').innerHTML = '';
+  S.tab = 'degus'; render(); toast('¡Listo! Armamos tus sugerencias.');
 }
 
 /* ---------- login simulado ---------- */
@@ -551,6 +725,7 @@ function openSheet(title, body, onMount){
   if(onMount) onMount(root.querySelector('.sheet'));
 }
 function closeSheet(){
+  if(placeMap){ try{ placeMap.remove(); }catch(e){} placeMap = null; }
   if(miniMap){ try{ miniMap.remove(); }catch(e){} miniMap = null; }
   document.getElementById('sheetRoot').innerHTML = '';
   if(lastFocus && lastFocus.focus && document.body.contains(lastFocus)) try{ lastFocus.focus(); }catch(e){}
@@ -614,26 +789,45 @@ function sheetSalida(sid){
     b.innerHTML = h;
   });
 }
+var placeMap = null;
 function sheetDegu(did){
   live(esc(S.degus[did].titulo), function(b){
     var x = dinfo(did), d = x.d, tid = activeTribe(), pct = Math.min(100, Math.round(x.n / d.cupo * 100));
-    var friends = tid ? inscriptos(did).filter(function(u){ return u !== S.uid && isMember(u, tid); }) : [];
+    var friends = inscriptos(did).filter(function(u){ return u !== S.uid && myTribes().some(function(t){ return isMember(u, t); }); });
+    var sg = suggest(x);
     var h = '<p class="meta" style="margin:-10px 0 0">'+esc(d.tipo)+' · '+esc(fmtDate(d.fecha))+', '+esc(d.hora)+'</p>'+
+      (sg ? '<span class="why" style="margin-top:-8px">'+esc(sg.why)+'</span>' : '')+
       '<p style="margin:0;color:var(--fg2)">'+esc(d.descripcion)+'</p>'+
-      '<div class="list"><div class="item"><div class="item-main"><span class="meta">Dónde</span><span class="item-t">'+esc(d.lugar)+'</span><span class="meta">'+esc(d.barrio)+'</span></div></div>'+
-      '<div class="item"><div class="item-main"><span class="meta">Anfitrión</span><span class="item-t">'+esc(d.anfitrion)+'</span></div></div>'+
-      '<div class="item"><div class="item-main"><span class="meta">Incluye</span><span style="font-weight:500">'+esc(d.incluye)+'</span></div><span class="price">'+money(d.precio)+'</span></div></div>'+
+      '<div class="list"><div class="item"><div class="item-main"><span class="meta">Incluye</span><span style="font-weight:500">'+esc(d.incluye)+'</span></div><span class="price">'+money(d.precio)+'</span></div>'+
+      '<div class="item"><div class="item-main"><span class="meta">Anfitrión</span><span style="font-weight:500">'+esc(d.anfitrion)+'</span></div><span class="meta">'+esc(d.duracion)+'</span></div></div>'+
+      '<div class="place">'+(HAS_MAP ? '<div class="pm" id="placeMap" role="img" aria-label="Mapa de '+esc(d.lugar)+'"></div>' : '')+
+      '<div class="pi"><span class="item-t">'+esc(d.lugar)+'</span><span class="meta">'+esc(d.direccion)+', '+esc(d.barrio)+'</span><span style="font-size:14px;color:var(--fg2)">'+esc(d.lugarDesc)+'</span>'+
+      '<a href="https://www.openstreetmap.org/?mlat='+d.lat+'&mlon='+d.lng+'#map=17/'+d.lat+'/'+d.lng+'" target="_blank" rel="noopener" style="font-size:14px;font-weight:600;color:var(--accent);margin-top:4px">Cómo llegar</a></div></div>'+
       '<div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">'+x.n+' de '+d.cupo+' lugares</span><span class="bar"><i style="width:'+pct+'%"></i></span>'+
       '<span class="meta">'+(x.st === 'abierta' ? 'Se hace con al menos '+d.min+' personas: '+(x.faltan===1?'falta 1.':'faltan '+x.faltan+'.') : x.st === 'completa' ? 'Cupo completo.' : 'Confirmada: ya llegó al mínimo.')+'</span>'+
-      (friends.length ? '<span class="meta"><span class="avs">'+friends.slice(0,4).map(function(u){ return av(u); }).join('')+'</span>'+(friends.length===1?esc(firstName(friends[0]))+' de tu tribu ya se anotó':friends.length+' de tu tribu ya se anotaron')+'</span>' : '')+'</div>';
+      (friends.length ? '<span class="meta"><span class="avs">'+friends.slice(0,4).map(function(u){ return av(u); }).join('')+'</span>'+(friends.length===1?esc(cap(firstName(friends[0])))+' ya se anotó':friends.length+' conocidos ya se anotaron')+'</span>' : '')+'</div>';
     h += '<div style="display:flex;flex-direction:column;gap:8px">';
-    if(x.me) h += '<button type="button" class="btn ok" data-act="desinscribir" data-id="'+esc(did)+'">'+ICON.check+'Anotado · tocá para bajarte</button>';
+    if(x.me) h += '<button type="button" class="btn ok" data-act="desinscribir" data-id="'+esc(did)+'">'+ICON.check+'Vas · tocá para bajarte</button>';
     else if(x.st === 'completa') h += '<button type="button" class="btn" disabled>Completa</button>';
     else h += '<button type="button" class="btn ink" data-act="inscribir" data-id="'+esc(did)+'">Anotarme · '+money(d.precio)+'</button>';
     if(tid && x.st !== 'completa') h += '<button type="button" class="btn quiet" data-act="deguTribu" data-id="'+esc(did)+'">Proponérsela a '+esc(tribe(tid).nombre)+'</button>';
     h += '</div><p class="hint" style="text-align:center">El pago es una simulación: no se cobra nada.</p>';
+    if(placeMap){ try{ placeMap.remove(); }catch(e){} placeMap = null; }
     b.innerHTML = h;
+    if(HAS_MAP){
+      placeMap = L.map('placeMap', {zoomControl:false, attributionControl:false, dragging:false, scrollWheelZoom:false, doubleClickZoom:false, touchZoom:false, keyboard:false}).setView([d.lat, d.lng], 16);
+      L.tileLayer(tileUrl(), {maxZoom:19, subdomains:'abcd'}).addTo(placeMap);
+      L.marker([d.lat, d.lng], {interactive:false, icon:L.divIcon({className:'', html:'<div class="pin on">'+catIcon(d.tipo).replace('width="24" height="24"','width="16" height="16"')+'</div>', iconSize:[34,34], iconAnchor:[17,17]})}).addTo(placeMap);
+      setTimeout(function(){ if(placeMap) placeMap.invalidateSize(); }, 200);
+    }
   });
+}
+function sheetNotifs(){
+  var list = notifs(), rd = readSet();
+  openSheet('Notificaciones', list.length ? '<div>'+list.map(function(n){
+    return '<button type="button" class="notif" data-act="goNotif" data-a="'+esc(n.act)+'" data-id="'+esc(n.ref)+'"><span class="ndot'+(rd[n.id]?' read':'')+'" aria-hidden="true"></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-weight:'+(rd[n.id]?500:700)+'">'+esc(n.title)+'</span><span class="meta">'+esc(n.sub)+'</span></span></button>'; }).join('')+'</div>'
+    : '<div class="empty" style="padding:24px 8px"><p>No tenés novedades por ahora.</p></div>');
+  list.forEach(function(n){ rd[n.id] = 1; }); store('tf-read', JSON.stringify(rd)); render();
 }
 function sheetNewAntojo(){
   var cats = catsOf(activeTribe());
@@ -713,7 +907,23 @@ var A = {
   tab: function(el){ S.tab = el.dataset.v; closeSheet(); render(); document.getElementById('view').scrollTop = 0; },
   close: closeSheet,
   login: doLogin,
-  logout: function(){ if(confirm('¿Cerrar sesión?')){ store('tf-login', null); render(); } },
+  logout: function(){ if(confirm('¿Cerrar sesión?')){ store('tf-login', null); ONB = null; render(); } },
+  openNotifs: sheetNotifs,
+  goNotif: function(el){ closeSheet(); var a = el.dataset.a, id = el.dataset.id;
+    if(a === 'openSalida'){ S.tab = 'salidas'; S.active = S.salidas[id].tribe; render(); sheetSalida(id); }
+    else if(a === 'evaluarSalida'){ var s = S.salidas[id]; sheetEvaluar({local:s.local, antojo:s.antojo, tribe:s.tribe}); }
+    else if(a === 'openDegu'){ S.tab = 'degus'; render(); sheetDegu(id); } },
+  editInterests: function(){ closeSheet(); startOnb(); },
+  onbSwipe: function(el){ swipe(el.dataset.v === '1'); },
+  onbOpt: function(el){ var st = STEPS[ONB.step], v = el.dataset.v, D = ONB.data;
+    if(st.type === 'single'){ D[st.key] = Number(v); }
+    else { var arr = D[st.key], i = arr.indexOf(v);
+      if(v === 'Nada en especial'){ D[st.key] = i >= 0 ? [] : ['Nada en especial']; }
+      else { if(i >= 0) arr.splice(i,1); else arr.push(v); D[st.key] = arr.filter(function(x){ return x !== 'Nada en especial'; }); } }
+    drawOnb(); },
+  onbNext: function(){ if(ONB.step >= STEPS.length - 1) finishOnb(); else { ONB.step++; drawOnb(); } },
+  onbBack: function(){ if(ONB.step > 0){ ONB.step--; if(STEPS[ONB.step].type === 'swipe'){ ONB.card = 0; ONB.data.likes = []; ONB.data.nope = []; } drawOnb(); } },
+  onbSkip: function(){ if(STEPS[ONB.step].type === 'swipe' && !ONB.data.likes.length){ ONB.step = 1; drawOnb(); return; } finishOnb(); },
   hideDemo: function(){ S.hideDemo = true; store('tf-hide-demo','1'); render(); },
   pickTribe: sheetPickTribe,
   openTribe: function(el){ sheetTribe(el.dataset.id); },
@@ -819,6 +1029,7 @@ document.addEventListener('click', function(e){
   if(el && el.tagName !== 'INPUT' && A[el.dataset.act] && !el.disabled) A[el.dataset.act](el);
 });
 document.addEventListener('keydown', function(e){
+  if(ONB && STEPS[ONB.step].type === 'swipe' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')){ swipe(e.key === 'ArrowRight'); return; }
   if(e.key === 'Escape' && document.getElementById('sheetRoot').firstChild) closeSheet();
   if(e.key === 'Enter' && (e.target.id === 'lgName' || e.target.id === 'lgMail')) doLogin();
 });
@@ -864,15 +1075,14 @@ function buildSeed(){
   sal('s-fukuro','amigos','fukuro-noodle-bar',[[2,'21:00'],[3,'21:00'],[6,'20:30']],4,6,'u1',{u1:['o1','o2','o3'],u2:['o1'],u3:['o2','o3']});
   sal('s-bilbao','amigos','bilbao',[[4,'21:00']],3,5,'u3',{u3:['o1'],u1:['o1'],u2:['o1']},'o1');
   sal('s-donjulio','laburo','don-julio',[[5,'13:00'],[7,'13:00']],4,8,'u4',{u4:['o1','o2'],u5:['o1'],u6:['o1','o2']});
-  var D = function(id, tipo, titulo, lugar, barrio, anf, off, hora, precio, cupo, mn, desc, inc, n){
-    return [id, {tipo:tipo, titulo:titulo, lugar:lugar, barrio:barrio, anfitrion:anf, fecha:dayStr(off), hora:hora, precio:precio, cupo:cupo, min:mn, descripcion:desc, incluye:inc}, n]; };
+  var D = function(o){ var id = o.id; delete o.id; o.fecha = dayStr(o.off); delete o.off; var n = o.n; delete o.n; return [id, o, n]; };
   var DL = [
-    D('d-cafe','Café','Cata de filtrados','Tueste Norte','Chacarita','Barista del local',1,'11:00',12000,8,4,'Tres orígenes, tres métodos de filtrado y cómo cambia la taza con cada uno.','3 cafés de especialidad y algo dulce',6),
-    D('d-vermut','Vermut','Vermut de autor y picada','Bar Sifón','Villa Crespo','Bartender invitado',2,'19:00',18000,14,6,'Cinco vermuts artesanales, cómo se arman y con qué acompañarlos.','5 copas chicas y picada',11),
-    D('d-ramen','Ramen','La ruta del tonkotsu','Cocina Kaze','Villa Crespo','Chef del local',3,'20:00',28000,10,6,'Cuatro caldos, cuatro estilos de fideo. El chef cuenta cómo se hace cada uno.','4 medios bowls y una bebida',7),
-    D('d-pastel','Pastelería','Laminados: medialuna, croissant y danesa','Obrador Miga','Colegiales','Pastelera del obrador',4,'10:30',20000,10,5,'Probás y comparás los tres laminados clásicos, recién horneados.','3 piezas, café y una caja para llevar',9),
-    D('d-vino','Vinos','Malbec de altura','Cepa Urbana','Palermo','Sommelier',5,'20:30',35000,12,8,'Malbecs de distintas alturas de Mendoza y Salta, con lo que cambia en cada copa.','5 copas y tabla de quesos',5),
-    D('d-te','Té','Tés en hebras de Asia','Casa Hoja','Palermo','Especialista en té',6,'17:00',15000,8,4,'Verde, blanco, oolong y negro: cómo se preparan y a qué sabe cada uno.','4 tés y pastelería',2)
+    D({id:'d-cafe', tipo:'Café', titulo:'Cata de filtrados', corta:'Tres orígenes y tres métodos para entender por qué cambia cada taza.', lugar:'Tueste Norte', barrio:'Chacarita', direccion:'Dorrego al 1100', lat:-34.5878, lng:-58.4462, lugarDesc:'Tostadería chica con barra de 8 lugares frente al tostador.', anfitrion:'Barista del local', duracion:'1 h 30 min', off:1, hora:'11:00', precio:12000, cupo:8, min:4, descripcion:'Probás café de Etiopía, Colombia y Brasil preparado en V60, Chemex y prensa francesa. El barista explica qué aporta cada origen y cada método, y te llevás una guía para replicarlo en casa.', incluye:'3 cafés de especialidad y algo dulce', n:6}),
+    D({id:'d-vermut', tipo:'Vermut', titulo:'Vermut de autor y picada', corta:'Cinco vermuts artesanales, cómo se arman y con qué se acompañan.', lugar:'Bar Sifón', barrio:'Villa Crespo', direccion:'Thames al 800', lat:-34.5963, lng:-58.4368, lugarDesc:'Bar de barrio con patio y una pared entera de botellas de vermut.', anfitrion:'Bartender invitado', duracion:'2 h', off:2, hora:'19:00', precio:18000, cupo:14, min:6, descripcion:'Un recorrido por vermuts rojos, blancos y rosados de productores chicos, servidos con sifón y twist. Cada copa viene con su bocado de picada pensado para maridar.', incluye:'5 copas chicas y picada', n:11}),
+    D({id:'d-ramen', tipo:'Ramen', titulo:'La ruta del tonkotsu', corta:'Cuatro caldos y cuatro estilos de fideo, contados por el chef.', lugar:'Cocina Kaze', barrio:'Villa Crespo', direccion:'Serrano al 500', lat:-34.5983, lng:-58.4402, lugarDesc:'Barra japonesa de 12 banquetas con la cocina a la vista.', anfitrion:'Chef del local', duracion:'2 h', off:3, hora:'20:00', precio:28000, cupo:10, min:6, descripcion:'Medios bowls de tonkotsu, shoyu, miso y shio para comparar. El chef cuenta cuántas horas lleva cada caldo y por qué cambia el fideo según el estilo.', incluye:'4 medios bowls y una bebida', n:7}),
+    D({id:'d-pastel', tipo:'Pastelería', titulo:'Laminados: medialuna, croissant y danesa', corta:'Los tres clásicos recién horneados, uno al lado del otro.', lugar:'Obrador Miga', barrio:'Colegiales', direccion:'Federico Lacroze al 2600', lat:-34.5747, lng:-58.4503, lugarDesc:'Obrador de masa madre con mesa comunitaria al fondo.', anfitrion:'Pastelera del obrador', duracion:'1 h 30 min', off:4, hora:'10:30', precio:20000, cupo:10, min:5, descripcion:'Ves cómo se lamina la masa, probás las tres piezas recién salidas del horno y aprendés a distinguir una buena laminación por el corte.', incluye:'3 piezas, café y una caja para llevar', n:9}),
+    D({id:'d-vino', tipo:'Vinos', titulo:'Malbec de altura', corta:'Malbecs de Mendoza y Salta para ver qué cambia con la altura.', lugar:'Cepa Urbana', barrio:'Palermo', direccion:'Gorriti al 4800', lat:-34.5897, lng:-58.4283, lugarDesc:'Vinoteca con salón de catas para 12 personas.', anfitrion:'Sommelier', duracion:'2 h', off:5, hora:'20:30', precio:35000, cupo:12, min:8, descripcion:'Cinco malbecs de viñedos entre 900 y 2.400 metros. La sommelier guía la cata y explica cómo la altura cambia el color, la acidez y la fruta.', incluye:'5 copas y tabla de quesos', n:5}),
+    D({id:'d-te', tipo:'Té', titulo:'Tés en hebras de Asia', corta:'Verde, blanco, oolong y negro: cómo se preparan y a qué saben.', lugar:'Casa Hoja', barrio:'Palermo', direccion:'Honduras al 5300', lat:-34.5869, lng:-58.4315, lugarDesc:'Casa de té con salón silencioso y vajilla de cerámica.', anfitrion:'Especialista en té', duracion:'1 h 30 min', off:6, hora:'17:00', precio:15000, cupo:8, min:4, descripcion:'Cuatro tés de China, Japón e India preparados a la temperatura y el tiempo justos, con una merienda que acompaña cada uno.', incluye:'4 tés y pastelería', n:2})
   ];
   var degus = {}, inscripciones = {}, pool = ['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','g11','g12','u5','u6'];
   DL.forEach(function(x, k){ degus[x[0]] = x[1]; var who = pool.slice(k % 3, (k % 3) + x[2]);
@@ -882,7 +1092,7 @@ function buildSeed(){
   return {data:{tribes:tribes, antojos:antojos, salidas:salidas, memberships:memberships, votes:votes, asist:asist, reviews:reviews, degus:degus, inscripciones:inscripciones}, profiles:profiles};
 }
 function localDb(seed){
-  var KEY = 'tribu-db-v5', data = null;
+  var KEY = 'tribu-db-v6', data = null;
   try{ data = JSON.parse(load(KEY) || 'null'); }catch(e){ data = null; }
   if(!data){ data = seed.data; store(KEY, JSON.stringify(data)); }
   COLS.forEach(function(c){ data[c] = data[c] || {}; });

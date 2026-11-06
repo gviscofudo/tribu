@@ -4,10 +4,13 @@ Organizá salidas con tu grupo, sin perder nada en el chat. Y sumate a experienc
 
 ## Qué hace
 
+- **Primer ingreso:** login simulado y un recorrido tipo app de citas para armar tu perfil: deslizás categorías (me gusta / paso) y elegís con quién salís, presupuesto, horarios, barrios y restricciones. Se puede editar desde Perfil.
+- **Notificaciones:** campana con novedades de tus tribus (salidas nuevas, confirmadas, recordatorios, reseñas pendientes), amigos que se anotaron a experiencias y sugerencias para vos.
+
 - **Tribus privadas:** tu grupo de amigos o del trabajo. Se entra solo con código de invitación.
 - **Salidas:** proponés una o varias fechas con un mínimo y un máximo de personas. Cada uno marca "Puedo" y se confirma la primera fecha que llega al mínimo.
 - **Lugares:** mapa y lista de los lugares que quiere conocer tu tribu, con votos y filtros por categoría.
-- **Experiencias:** actividades abiertas por categoría (vinos, café, té, vermut, ramen, pastelería) con fecha, cupo, mínimo para que se haga y precio. Te anotás solo o se la proponés a tu tribu.
+- **Experiencias:** actividades abiertas por categoría (vinos, café, té, vermut, ramen, pastelería) con fecha, cupo, mínimo para que se haga y precio. Arriba, "Para vos" con hasta 3 sugeridas según tus intereses; abajo, todas. Cada experiencia tiene una descripción breve y el detalle del lugar (dirección, descripción y mapa). Te anotás solo o se la proponés a tu tribu.
 - **Perfil:** reseñas con sliders, puntos y ranking dentro de tu tribu.
 
 ## Publicar en GitHub Pages
