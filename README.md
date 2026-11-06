@@ -13,6 +13,7 @@ Organizá salidas con tu grupo, sin perder nada en el chat. Y sumate a experienc
 - **Fotos de portada:** cada experiencia y cada salida tiene un banner. Por defecto se genera una ilustración según la categoría; al crear una salida podés subir tu propia foto (se achica automáticamente).
 - **Lugares:** mapa y lista de los lugares que quiere conocer tu tribu, con votos y filtros por categoría.
 - **Experiencias:** actividades abiertas por categoría (vinos, café, té, vermut, ramen, pastelería) con fecha, cupo, mínimo para que se haga y precio. Arriba, "Para vos" con hasta 3 sugeridas según tus intereses; abajo, todas. Cada experiencia tiene una descripción breve y el detalle del lugar (dirección, descripción y mapa). Te anotás solo o se la proponés a tu tribu.
+- **Mi agenda:** todo a lo que te anotaste en un solo lugar: salidas de todas tus tribus y experiencias. Muestra lo confirmado por día, lo que espera confirmación (con las fechas que marcaste y cuántos faltan) y lo anterior, con acceso directo a evaluar.
 - **Perfil:** reseñas con sliders, puntos y ranking dentro de tu tribu.
 
 ## Publicar en GitHub Pages
