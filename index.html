@@ -149,6 +149,8 @@ nav.tabs button[aria-current="page"]{color:var(--fg);font-weight:700}
 .kind{font-size:12px;font-weight:600;color:var(--fg3)}
 .st-ok{color:var(--ok);font-weight:600}
 .st-wait{color:var(--fg2);font-weight:600}
+.wa{background:#25D366;border-color:#25D366;color:#0B3B1E}
+.wa svg{flex-shrink:0}
 .ichips{display:flex;flex-wrap:wrap;gap:6px}
 .ichip{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
 /* onboarding */
@@ -298,6 +300,7 @@ function code6(){ var c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = ''; for(var i=
 function logoSVG(ribs){ return '<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M60 46 H26 Q14 46 14 34 V20" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><path d="M60 46 H94 Q106 46 106 34 V20" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><path d="M46 120 V14 A14 14 0 0 1 74 14 V120 Z" fill="currentColor"/>'+(ribs?'<path d="M56 62 V112 M64 62 V112 M14 22 V36 M106 22 V36" fill="none" style="stroke:var(--bg)" stroke-width="2" stroke-linecap="round" opacity="0.45"/>':'')+'</svg>'; }
 function logo(cls){ return '<span class="logo '+(cls||'')+'" role="img" aria-label="tribu">'+logoSVG(cls==='xl')+'<span aria-hidden="true">ribu</span></span>'; }
 var ICON = {
+  wa:'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4c1.7.7 2.3.8 3.2.7a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.2-.2-.5-.3Z"/></svg>',
   up:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>',
   plus:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
   check:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
@@ -544,6 +547,7 @@ function render(){
     document.getElementById('view').innerHTML = html;
   }
   document.getElementById('fabSlot').innerHTML = (S.tab === 'lugares' && tid && S.ready) ? '<button type="button" class="fab" data-act="newAntojo">'+ICON.plus+'Proponer lugar</button>' : '';
+  if(S.pendingCode && S.ready && load('tf-login') && !ONB && document.getElementById('onb').hidden){ var pc = S.pendingCode; S.pendingCode = null; setTimeout(function(){ sheetJoin(pc); }, 50); }
 }
 function needTribe(){
   return '<div class="empty">'+logo('xl')+'<p>Creá una tribu con tu grupo de amigos o sumate con el código que te pasaron.</p><button type="button" class="btn ink" data-act="newTribe">Crear tribu</button><button type="button" class="btn" data-act="codeSheet">Tengo un código</button></div>';
@@ -823,6 +827,7 @@ function renderLogin(){
   el.hidden = false;
   el.innerHTML = '<div class="login-in" role="dialog" aria-modal="true" aria-label="Ingresar a tribu">'+logo('xl')+
     '<p class="login-claim">Organizá salidas con tu grupo, sin perder nada en el chat.</p>'+
+    (S.pendingCode ? '<p class="banner" style="margin:-8px 0 6px;text-align:center">Te invitaron a una tribu. Entrá y te sumamos.</p>' : '')+
     '<button type="button" class="btn" data-act="login">Continuar con Google</button>'+
     '<button type="button" class="btn" data-act="login">Continuar con Apple</button>'+
     '<div class="or">o con tu email</div>'+
@@ -870,7 +875,10 @@ function sheetTribe(tid){
     var t = S.tribes[tid]; if(!t){ closeSheet(); return; }
     var mem = membersOf(tid).sort(function(a,c){ return (c === t.creador) - (a === t.creador); }), boss = isCacique(S.uid, tid);
     b.innerHTML = (t.descripcion ? '<p style="margin:-10px 0 0;color:var(--fg2)">'+esc(t.descripcion)+'</p>' : '')+
-      '<div class="field"><span class="lbl">Código para invitar</span><div class="code">'+esc(t.codigo)+'</div><p class="hint">Pasáselo a tu grupo por WhatsApp. Con este código entran directo.</p></div>'+
+      '<div class="field"><span class="lbl">Invitar a la tribu</span>'+
+        '<button type="button" class="btn wa" data-act="inviteWA" data-id="'+esc(tid)+'">'+ICON.wa+'Invitar por WhatsApp</button>'+
+        '<div style="display:flex;gap:8px"><button type="button" class="btn" data-act="copyInvite" data-id="'+esc(tid)+'">Copiar enlace</button>'+(navigator.share ? '<button type="button" class="btn" data-act="shareInvite" data-id="'+esc(tid)+'">Compartir</button>' : '')+'</div>'+
+        '<p class="hint">El enlace abre tribu y suma a la persona directo a esta tribu. Código: <b style="letter-spacing:.06em">'+esc(t.codigo)+'</b></p></div>'+
       '<div><span class="lbl">'+mem.length+(mem.length===1?' integrante':' integrantes')+'</span><div class="list">'+mem.map(function(u){
         var right = u === t.creador ? caciqueTag()
           : boss ? '<button type="button" class="mini" data-act="memberMenu" data-id="'+esc(tid)+'" data-u="'+esc(u)+'" aria-label="Opciones para '+esc(nm(u))+'">···</button>' : '';
@@ -1023,9 +1031,26 @@ function sheetNewTribe(){
     '<p class="hint">Las tribus son privadas: solo entra quien tenga el código.</p>'+
     '<button type="button" class="btn ink" data-act="saveTribe">Crear tribu</button>');
 }
+function inviteLink(t){ return location.origin + location.pathname + '?unirme=' + encodeURIComponent(t.codigo); }
+function inviteText(t){ return '¡Sumate a mi tribu "'+t.nombre+'" en tribu! 🌵 Ahí organizamos las salidas y elegimos a dónde ir.\n\nEntrá desde este enlace y quedás adentro: '+inviteLink(t)+'\n\n(Si te lo pide, el código es '+t.codigo+')'; }
+function sheetJoin(code){
+  var tid = Object.keys(S.tribes).filter(function(t){ return S.tribes[t].codigo === code; })[0];
+  if(!tid){
+    openSheet('Invitación a una tribu', '<p style="margin:-6px 0 0;color:var(--fg2)">No encontramos la tribu con el código <b>'+esc(code)+'</b> en este dispositivo.</p>'+
+      '<p class="hint">En esta demo los datos se guardan en cada celular, así que solo funcionan las tribus de ejemplo. En la versión final, el enlace te suma directo.</p>'+
+      '<button type="button" class="btn ink" data-act="codeSheet">Probar con otro código</button>');
+    return;
+  }
+  var t = S.tribes[tid];
+  if(isMember(S.uid, tid)){ S.active = tid; store('tf-active', tid); S.tab = 'salidas'; render(); toast('Ya estás en '+t.nombre+'.'); return; }
+  var mem = membersOf(tid);
+  openSheet('Te invitaron a '+esc(t.nombre), (t.descripcion ? '<p style="margin:-6px 0 0;color:var(--fg2)">'+esc(t.descripcion)+'</p>' : '')+
+    '<p class="meta" style="margin:0"><span class="avs">'+mem.slice(0,5).map(function(u){ return av(u); }).join('')+'</span>'+mem.length+(mem.length===1?' integrante':' integrantes')+' · cacique: '+esc(nm(t.creador))+'</p>'+
+    '<div style="display:flex;flex-direction:column;gap:8px"><button type="button" class="btn ink" data-act="joinByLink" data-id="'+esc(tid)+'">Unirme a la tribu</button><button type="button" class="btn quiet" data-act="close">Ahora no</button></div>');
+}
 function sheetCode(){
   openSheet('Unirme con un código', '<div class="field"><label for="codeIn">Código que te pasaron</label><input id="codeIn" class="input" autocomplete="off" autocapitalize="characters" maxlength="6" placeholder="Ej.: K7M2QX" style="text-transform:uppercase;letter-spacing:.08em"></div><button type="button" class="btn ink" data-act="useCode">Unirme</button>'+
-    '<p class="hint">Para probar, usá el código <b>RAMEN1</b>.</p>');
+    '<p class="hint">Para probar, usá el código <b>VERMUT</b>.</p>');
 }
 var SCORE = [{id:'sabor', label:'Sabor', min:'Normal', max:'Espectacular'},{id:'precio', label:'Precio / calidad', min:'Carísimo', max:'Excelente'},{id:'atencion', label:'Atención', min:'Demorada', max:'Inmediata'}];
 var PROF = [{id:'ruido', label:'Ruido', min:'Silencioso', max:'Bullicioso', tag:ruidoTag},{id:'porcion', label:'Porción', min:'Gourmet', max:'Abundante', tag:porcionTag}];
@@ -1161,6 +1186,14 @@ var A = {
     closeSheet();
   },
   memberMenu: function(el){ sheetMember(el.dataset.id, el.dataset.u); },
+  inviteWA: function(el){ var t = S.tribes[el.dataset.id]; window.open('https://wa.me/?text=' + encodeURIComponent(inviteText(t)), '_blank', 'noopener'); },
+  copyInvite: function(el){ var t = S.tribes[el.dataset.id], txt = inviteLink(t);
+    var done = function(){ toast('Enlace copiado. Pegalo donde quieras.'); };
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function(){ prompt('Copiá el enlace:', txt); });
+    else prompt('Copiá el enlace:', txt); },
+  shareInvite: function(el){ var t = S.tribes[el.dataset.id]; navigator.share({title:'Sumate a '+t.nombre, text:inviteText(t)}).catch(function(){}); },
+  joinByLink: function(el){ var tid = el.dataset.id, t = S.tribes[tid];
+    act(setMine('memberships','tribes',tid,true).then(function(){ S.active = tid; store('tf-active', tid); S.tab = 'salidas'; }), '¡Bienvenido a '+t.nombre+'!').catch(function(){}).then(function(){ closeSheet(); render(); }); },
   kick: function(el){ var tid = el.dataset.id, u = el.dataset.u, t = S.tribes[tid];
     if(!isCacique(S.uid, tid) || !confirm('¿Quitar a '+nm(u)+' de '+t.nombre+'?')) return;
     act(removeFromTribe(u, tid), nm(u).split(' ')[0]+' ya no está en la tribu.').catch(function(){}); sheetTribe(tid); },
@@ -1214,6 +1247,7 @@ function buildSeed(){
     g1:'Lucía Gómez',g2:'Pedro Sosa',g3:'Ana Ferreyra',g4:'Diego Ruiz',g5:'Flor Medina',g6:'Matías Acosta',g7:'Paula Ortiz',g8:'Leo Domínguez',g9:'Vicky Herrera',g10:'Santi Molina',g11:'Juli Navarro',g12:'Bruno Rey'};
   var tribes = {
     amigos:{nombre:'Los del ramen', sigla:'LR', descripcion:'El grupo de amigos que siempre termina hablando de dónde comer.', codigo:'RAMEN1', creador:'local', createdAt:'2026-11-01T12:00:00Z'},
+    vermut:{nombre:'Club del vermut', sigla:'CV', descripcion:'Aperitivo de los sábados y bares con sifón.', codigo:'VERMUT', creador:'u2', createdAt:'2026-11-02T12:00:00Z'},
     laburo:{nombre:'Compañeros de trabajo', sigla:'CT', descripcion:'Almuerzos y afters del equipo.', codigo:'LABU22', creador:'u4', createdAt:'2026-11-01T12:00:00Z'}
   };
   var A_ = [
@@ -1229,7 +1263,7 @@ function buildSeed(){
   var antojos = {}, idOf = {};
   A_.forEach(function(r){ var id = 'seed-'+r[0]; idOf[r[0]] = id; antojos[id] = {nombre:r[1], barrio:r[2], categoria:r[3], tribe:r[4], localKey:r[0], lat:r[5], lng:r[6], propuestoPor:'', createdAt:'2026-11-05T14:00:00Z'}; });
   var mem = function(l){ var o = {}; l.forEach(function(t){ o[t] = true; }); return {tribes:o}; };
-  var memberships = {local:mem(['amigos','laburo']), u1:mem(['amigos']), u2:mem(['amigos']), u3:mem(['amigos']), u4:mem(['laburo']), u5:mem(['laburo']), u6:mem(['laburo'])};
+  var memberships = {local:mem(['amigos','laburo']), u1:mem(['amigos']), u2:mem(['amigos','vermut']), u3:mem(['amigos']), u4:mem(['laburo']), u5:mem(['laburo','vermut']), u6:mem(['laburo','vermut'])};
   var vt = function(k){ var o = {}; k.forEach(function(x){ o[idOf[x]] = true; }); return {antojos:o}; };
   var votes = {u1:vt(['fukuro-noodle-bar','chinofino','bilbao']), u2:vt(['fukuro-noodle-bar','mirutaki']), u3:vt(['fukuro-noodle-bar','a-donde']), u4:vt(['don-julio','hierro']), u5:vt(['don-julio','los-bohemios']), u6:vt(['los-bohemios','burger-joint'])};
   var M = monthKey(), rv = function(lk, loc, tr, v, c, ago){ var d = new Date(); d.setDate(d.getDate()-ago);
@@ -1265,7 +1299,7 @@ function buildSeed(){
   return {data:{tribes:tribes, antojos:antojos, salidas:salidas, memberships:memberships, votes:votes, asist:asist, reviews:reviews, degus:degus, inscripciones:inscripciones}, profiles:profiles};
 }
 function localDb(seed){
-  var KEY = 'tribu-db-v9', data = null;
+  var KEY = 'tribu-db-v10', data = null;
   try{ data = JSON.parse(load(KEY) || 'null'); }catch(e){ data = null; }
   if(!data){ data = seed.data; store(KEY, JSON.stringify(data)); }
   COLS.forEach(function(c){ data[c] = data[c] || {}; });
@@ -1287,6 +1321,8 @@ function localDb(seed){
 }
 
 /* ---------- arranque ---------- */
+try{ var qp = new URLSearchParams(location.search), inv = (qp.get('unirme') || '').trim().toUpperCase();
+  if(inv){ S.pendingCode = inv; qp.delete('unirme'); history.replaceState(null, '', location.pathname + (qp.toString() ? '?' + qp : '') + location.hash); } }catch(e){}
 var seed = buildSeed();
 S.profiles = seed.profiles; S.active = load('tf-active') || 'amigos'; S.meName = load('tf-name') || ''; S.hideDemo = !!load('tf-hide-demo');
 db = localDb(seed);

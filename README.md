@@ -8,6 +8,7 @@ Organizá salidas con tu grupo, sin perder nada en el chat. Y sumate a experienc
 - **Notificaciones:** campana con novedades de tus tribus (salidas nuevas, confirmadas, recordatorios, reseñas pendientes), amigos que se anotaron a experiencias y sugerencias para vos.
 
 - **Tribus privadas:** tu grupo de amigos o del trabajo. Se entra solo con código de invitación. Quien la crea es el **Cacique**: puede quitar integrantes, pasar el mando a otra persona o borrar la tribu (con confirmación escribiendo el nombre).
+- **Invitar por WhatsApp:** desde la ficha de la tribu, "Invitar por WhatsApp" abre WhatsApp con un mensaje listo y un enlace del tipo `https://<usuario>.github.io/<repo>/?unirme=CODIGO`. Quien lo abre entra, completa su perfil y la app le muestra la invitación para sumarse con un toque. También se puede copiar el enlace o compartirlo por otras apps.
 - **Salidas:** proponés una o varias fechas con un mínimo y un máximo de personas. Cada uno marca "Puedo" y se confirma la primera fecha que llega al mínimo.
 - **Publicar en una tribu:** al proponer una salida (desde un lugar o una experiencia) elegís en cuál de tus tribus se publica.
 - **Fotos de portada:** cada experiencia y cada salida tiene un banner. Por defecto se genera una ilustración según la categoría; al crear una salida podés subir tu propia foto (se achica automáticamente).
@@ -24,7 +25,7 @@ Organizá salidas con tu grupo, sin perder nada en el chat. Y sumate a experienc
 
 ## Demo
 
-Los datos se guardan en el dispositivo y la gente es ficticia. Para probar unirse a una tribu, usá el código `RAMEN1`. En la demo sos cacique de "Los del ramen". Las experiencias y sus locales son ejemplos inventados. Las ubicaciones de los lugares son aproximadas.
+Los datos se guardan en el dispositivo y la gente es ficticia. Para probar unirse a una tribu, usá el código `VERMUT` (o el enlace `?unirme=VERMUT`). En la demo sos cacique de "Los del ramen". Las experiencias y sus locales son ejemplos inventados. Las ubicaciones de los lugares son aproximadas.
 
 ## Identidad
 
